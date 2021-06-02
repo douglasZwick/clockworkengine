@@ -1,14 +1,29 @@
 import P5 from "p5"
+var canvasW = 640;
+var canvasH = 360;
+var clearColor;
 
-const sketch = (p5: P5) => {
-    p5.setup = () => {
-        p5.createCanvas(400, 400)
+const sketch = (p5: P5) =>
+{
+    function setup() {
+        createCanvas(canvasW, canvasH);
+
+        ENGINE = new Engine();
+        let testScene = new TestScene();
+        SPACE.Load(testScene);
+
+        clearColor = color(40);
+
+        frameRate(60);
     }
 
-    p5.draw = () => {
-        p5.background(220)
-        p5.ellipse(60,50,80,80)
+    function draw() {
+        background(clearColor);
+
+        ENGINE.Update(dt());
     }
+
+    function dt() { return deltaTime / 1000; }
 }
 
 new P5(sketch)
