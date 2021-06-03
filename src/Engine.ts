@@ -46,7 +46,7 @@ export default class Engine
     if (IM.Mode === ImMode.Replay)
       IM.CopyFromHistory();
 
-    if (IM.Down(Key.Shift) && IM.Pressed(Key.D))
+    if (IM.Down(Key.Control) && IM.Pressed(Key.D))
       this.Space.ToggleDebugDraw();
 
     // Update the behavior of the game's components

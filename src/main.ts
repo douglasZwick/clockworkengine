@@ -39,13 +39,17 @@ const sketch = (p5: P5) =>
   p5.keyPressed = function ()
   {
     if (IM.Mode !== ImMode.Replay)
-    IM.Curr[G.keyCode] = true;
+      IM.Curr[G.keyCode] = true;
+
+    return false;
   }
   
   p5.keyReleased = function ()
   {
     if (IM.Mode !== ImMode.Replay)
       IM.Curr[G.keyCode] = false;
+    
+    return false;
   }
 
   function dt() { return p5.deltaTime / 1000; }
