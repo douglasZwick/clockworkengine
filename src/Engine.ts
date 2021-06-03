@@ -7,37 +7,48 @@
 //   https://github.com/zeroengineteam/ZeroCore
 
 
-var ENGINE;  // global access to the engine itself
-var SPACE;   // global access to the engine's Space
-var PHX;     // global access to the physics system
-var GFX;     // global access to the graphics system
+import { Cog } from "./Cog"
+import { Scene } from "./Scene"
+import { Graphical, Collider, AabbCollider, Body, Contact } from "./Cog"
+import { TileMap } from "./TileMap"
+import InputMaster, { ImMode, Key } from "./InputMaster"
 
-// Defines the number of world units per logical "meter"
-const METER = 32;
 
-class Engine
+export var IM: InputMaster;
+
+
+export default class Engine
 {
+  // The IdCounter is used by CountedObjects to get unique ID numbers
+  static IdCounter: number = 0;
+  // Defines the number of world units per logical "meter"
+  static Meter: number = 32;
+
+  Space: Space;
+  PhysicsSystem: PhysicsSystem;
+  GraphicsSystem: GraphicsSystem;
+  InputMaster: InputMaster;
+
   constructor()
   {
-    ENGINE = this;
-    
-    // The IdCounter is used by CountedObjects to get unique ID numbers
-    this.IdCounter = 0;
-    
-    this.Space = new Space();
-    this.PhysicsSystem = new PhysicsSystem();
-    this.GraphicsSystem = new GraphicsSystem();
-    
-    SPACE = this.Space;
-    PHX = this.PhysicsSystem;
-    GFX = this.GraphicsSystem;
+    this.Space = new Space(this);
+    this.PhysicsSystem = new PhysicsSystem(this);
+    this.GraphicsSystem = new GraphicsSystem(this);
+    this.InputMaster = new InputMaster(this);
+    IM = this.InputMaster;
   }
   
   // Gets the next unique ID number
-  NextId() { return this.IdCounter++; }
+  static NextId(): number { return Engine.IdCounter++; }
   
-  Update(dt)
+  Update(dt: number)
   {
+    if (IM.Mode === ImMode.Replay)
+      IM.CopyFromHistory();
+
+    if (IM.Down(Key.Shift) && IM.Pressed(Key.D))
+      this.Space.ToggleDebugDraw();
+
     // Update the behavior of the game's components
     this.Space.LogicUpdate(dt);
     // Applies velocities, checks collisions
@@ -51,25 +62,38 @@ class Engine
     
     if (this.Space.UseDebugDraw)
       this.Space.DebugDraw();
+
+    // Update the key arrays in the InputMaster
+    IM.Update();
   }
 }
 
 
 // Manages the creation, updating, and destruction
 //   of Cogs. Can load scenes.
-class Space
+export class Space
 {
-  constructor()
+  // The engine containing this space
+  Engine: Engine;
+  // The array of all the objects in the space
+  List: Cog[] = [];
+  // Whether debug drawing should be performed
+  UseDebugDraw: boolean = false;
+  
+  constructor(engine: Engine)
   {
-    // The array of all the objects in the space
-    this.List = [];
-    this.UseDebugDraw = true;
+    this.Engine = engine;
   }
+
+  // The GraphicsSystem of this Space
+  get GraphicsSystem() { return this.Engine.GraphicsSystem; }
+  // The PhysicsSystem of this Space
+  get PhysicsSystem() { return this.Engine.PhysicsSystem; }
   
   // Creates and returns a new Cog
-  Create(name = "Cog")
+  Create(name: string = "Cog"): Cog
   {
-    let cog = new Cog();
+    let cog = new Cog(this);
     cog.Name = name;
     this.List.push(cog);
     
@@ -84,7 +108,7 @@ class Space
   }
   
   // Loads a scene destructively (that is, not additively)
-  Load(scene)
+  Load(scene: Scene)
   {
     // Clears everything first and then adds the new objects
     this.Clear();
@@ -92,13 +116,13 @@ class Space
   }
   
   // Loads a scene, adding its Cogs to the ones already there
-  LoadAdditively(scene)
+  LoadAdditively(scene: Scene)
   {
     scene.Load(this);
   }
   
   // Finds the Cog that has the given Id (if any)
-  Get(id)
+  Get(id: number): Cog
   {
     for (const cog of this.List)
       if (cog.Id === id)
@@ -108,7 +132,7 @@ class Space
   }
   
   // Finds the first Cog with the given name (if any)
-  Find(name)
+  Find(name: string): Cog
   {
     for (const cog of this.List)
       if (cog.Name === name)
@@ -118,9 +142,9 @@ class Space
   }
   
   // Returns an array of all the Cogs with the given name
-  FindAll(name)
+  FindAll(name: string): Cog[]
   {
-    let cogs = [];
+    let cogs = Array<Cog>();
     
     for (const cog of this.List)
       if (cog.Name === name)
@@ -128,21 +152,27 @@ class Space
     
     return cogs;
   }
+
+  ToggleDebugDraw()
+  {
+    this.UseDebugDraw = !this.UseDebugDraw;
+  }
   
   // Updates all the Cogs' components' behaviors
-  LogicUpdate(dt)
+  LogicUpdate(dt: number)
   {
     for (const cog of this.List)
       cog.LogicUpdate(dt);
   }
   
   // Useful for anything that should happen after physics
-  LateUpdate(dt)
+  LateUpdate(dt: number)
   {
     for (const cog of this.List)
       cog.LateUpdate(dt);
   }
   
+  // Draws participating components for debugging purposes
   DebugDraw()
   {
     for (const cog of this.List)
@@ -152,7 +182,7 @@ class Space
   // Prunes all the marked Cogs out of the Space
   CleanUp()
   {
-    let notDestroyedList = [];
+    let notDestroyedList = Array<Cog>();
     
     for (const cog of this.List)
     {
@@ -173,30 +203,33 @@ class Space
 //   to their positions and also update their velocities
 //   based on gravity (maybe forces later?).
 // Also manages collisions.
-class PhysicsSystem
+export class PhysicsSystem
 {
-  constructor()
+  Engine: Engine;
+  // Static Colliders don't check collision against each other
+  StaticList: Collider[] = [];
+  // Dynamic Colliders can move and check against
+  //   statics and dynamics
+  DynamicList: Collider[] = [];
+  // The array of all the Body components present
+  BodyList: Body[] = [];
+  // The TileMap, if any, that should be considered by
+  //   TileMapCollider Components to be solid
+  SolidTileMap: TileMap = null;
+
+  constructor(engine: Engine)
   {
-    // Static Colliders don't check collision against each other
-    this.StaticList = [];
-    // Dynamic Colliders can move and check against
-    //   statics and dynamics
-    this.DynamicList = [];
-    // The array of all the Body components present
-    this.BodyList = [];
-    // The TileMap, if any, that should be considered by
-    //   TileMapCollider Components to be solid
-    this.SolidTileMap = null;
+    this.Engine = engine;
   }
   
   // Adds the given Collider to whichever list it belongs in
-  AddCollider(collider)
+  AddCollider(collider: Collider)
   {
     (collider.Dynamic ? this.DynamicList : this.StaticList).push(collider);
   }
   
   // Finds the given Collider and removes it from its list
-  RemoveCollider(collider)
+  RemoveCollider(collider: Collider)
   {
     let list = collider.Dynamic ? this.DynamicList : this.StaticList;
     
@@ -204,7 +237,7 @@ class PhysicsSystem
     
     for (let i = 0; i < length; ++i)
     {
-      if (list[i].Id === collider.id)
+      if (list[i].Id === collider.Id)
       {
         list[i] = list[length - 1];
         --list.length;
@@ -215,19 +248,19 @@ class PhysicsSystem
   }
   
   // Adds the given Body to the array
-  AddBody(body)
+  AddBody(body: Body)
   {
     this.BodyList.push(body);
   }
   
   // Finds the given Body and removes it
-  RemoveBody(body)
+  RemoveBody(body: Body)
   {
     let length = this.BodyList.length;
     
     for (let i = 0; i < length; ++i)
     {
-      if (this.BodyList[i].Id === graphical.id)
+      if (this.BodyList[i].Id === body.Id)
       {
         this.BodyList[i] = this.BodyList[length - 1];
         --this.BodyList.length;
@@ -237,19 +270,19 @@ class PhysicsSystem
     }
   }
   
-  AddSolidTileMap(tileMap)
+  AddSolidTileMap(tileMap: TileMap)
   {
     this.SolidTileMap = tileMap;
   }
   
-  RemoveSolidTileMap(tileMap)
+  RemoveSolidTileMap(tileMap: TileMap)
   {
     if (this.SolidTileMap.Id === tileMap.Id)
       this.SolidTileMap = null;
   }
   
   // Applies velocities, etc., then checks for collisions
-  PhysicsUpdate(dt)
+  PhysicsUpdate(dt: number)
   {
     for (const body of this.BodyList)
       body.PhysicsUpdate(dt);
@@ -275,14 +308,14 @@ class PhysicsSystem
   
   // Tests whether Collider a is touching Collider b,
   //   then calls the appropriate collision function
-  Test(a, b)
+  Test(a: Collider, b: Collider)
   {
     // Currently we only have Aabb colliders
     
     // If they're both Aabbs, then...
-    if (a.ComponentType === "AabbCollider")
+    if (a instanceof AabbCollider)
     {
-      if (b.ComponentType === "AabbCollider")
+      if (b instanceof AabbCollider)
       {
         // If the AabbVsAabb check comes back true, then...
         if (this.AabbVsAabb(a, b))
@@ -310,9 +343,9 @@ class PhysicsSystem
   }
   
   // Returns true if the two AabbColliders are touching, false otherwise
-  AabbVsAabb(a, b, aVel = null, bVel = null)
+  AabbVsAabb(a: AabbCollider, b: AabbCollider, aVel = null, bVel = null): boolean
   {
-    let contact = new Contact();
+    // let contact = new Contact();
     
     let aL = a.Left;
     let aR = a.Right;
@@ -337,12 +370,12 @@ class PhysicsSystem
   
   // Adds a new contact to the two Colliders
   //   and calls their CollisionStarted functions
-  StartCollision(a, b)
+  StartCollision(a: Collider, b: Collider)
   {
     let collision = new Collision();
-    collision.Other = b;
+    collision.Other = b.Owner;
     a.Owner.CollisionStarted(collision);
-    collision.Other = a;
+    collision.Other = a.Owner;
     b.Owner.CollisionStarted(collision);
     let contactA = new Contact();
     let contactB = new Contact();
@@ -353,38 +386,42 @@ class PhysicsSystem
   }
   
   // No new contact needed, so just calls CollisionPersisted
-  PersistCollision(a, b)
+  PersistCollision(a: Collider, b: Collider)
   {
     let collision = new Collision();
-    collision.Other = b;
+    collision.Other = b.Owner;
     a.Owner.CollisionPersisted(collision);
-    collision.Other = a;
+    collision.Other = a.Owner;
     b.Owner.CollisionPersisted(collision);
   }
   
   // Calls CollisionEnded on the two Colliders
-  EndCollision(a, b)
+  EndCollision(a: Collider, b: Collider)
   {
     let collision = new Collision();
-    collision.Other = b;
+    collision.Other = b.Owner;
     a.Owner.CollisionEnded(collision);
-    collision.Other = a;
+    collision.Other = a.Owner;
     b.Owner.CollisionEnded(collision);
   }
 }
 
 
 // Manages the drawing and ordering of all the Graphicals
-class GraphicsSystem
+export class GraphicsSystem
 {
-  constructor()
+  Engine: Engine;
+
+  // The map of all the Graphical components present
+  Graphicals: Map<number, Graphical[]> = new Map<number, Graphical[]>();
+
+  constructor(engine: Engine)
   {
-    // The map of all the Graphical components present
-    this.Graphicals = new Map();
+    this.Engine = engine;
   }
   
   // Adds the given Graphical to the system
-  Add(graphical)
+  Add(graphical: Graphical)
   {
     let layerIndex = graphical.Layer;
     let layerArray = this.Graphicals.get(layerIndex);
@@ -396,7 +433,7 @@ class GraphicsSystem
   }
   
   // Finds the given Graphical and removes it
-  Remove(graphical)
+  Remove(graphical: Graphical)
   {
     let layer = graphical.Layer;
     let layerArray = this.Graphicals.get(layer);
@@ -404,7 +441,7 @@ class GraphicsSystem
     
     for (let i = 0; i < length; ++i)
     {
-      if (layerArray[i].Id === graphical.id)
+      if (layerArray[i].Id === graphical.Id)
       {
         layerArray[i] = layerArray[length - 1];
         --layerArray.length;
@@ -435,27 +472,23 @@ class GraphicsSystem
 
 
 // Data about a collision that began, persisted, or ended
-class Collision
+export class Collision
 {
-  constructor()
-  {
-    // The other Cog involved in a collision
-    this.Other = null;
-    
-    // TODO:
-    //   add world point, maybe also local point, penetration depth, etc
-  }
+  // TODO:
+  //   add world point, maybe also local point, penetration depth, etc
+
+  // The other Cog involved in a collision
+  Other: Cog = null;
 }
 
 
+// TODO:
+//   Maybe use this...?
 class GraphicsLayer
 {
-  constructor()
-  {
-    this.LayerIndex = 0;
-    this.Graphicals = [];
-    this.SortFunction = null;
-  }
+  LayerIndex: number = 0;
+  Graphicals: Graphical[] = [];
+  SortFunction: (a: Graphical, b: Graphical) => number = null;
   
   Add(graphical)
   {
@@ -489,7 +522,7 @@ class GraphicsLayer
   
   Render()
   {
-    for (const graphical in this.Graphicals)
+    for (const graphical of this.Graphicals)
       graphical.Render();
   }
 }

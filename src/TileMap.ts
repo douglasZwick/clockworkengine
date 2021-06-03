@@ -1,7 +1,18 @@
+import P5 from "p5"
+import { G } from "./main"
+import { Component, Graphical } from "./Cog"
+import Engine from "./Engine";
+
+
 // Contains all relevant data to identify and use
 //   the tiles found in a TileMap
-class Tile {
-  constructor(solid = false, tileColor = color(255)) {
+export class Tile
+{
+  Solid: boolean;
+  Color: P5.Color;
+
+  constructor(solid = false, tileColor = G.color(255))
+  {
     this.Solid = solid;
     this.Color = tileColor;
   }
@@ -11,28 +22,33 @@ class Tile {
 // A 2D Map of Tile, describing a scene's tiled information
 // TODO:
 //   decide if this actually should be a Graphical
-class TileMap extends Graphical {
-  constructor() {
+export class TileMap extends Graphical
+{
+  // The 2D container of the map itself
+  Map: Map<number, Map<number, Tile>> = new Map<number, Map<number, Tile>>();
+  // Whether this TileMap should be considered by
+  //   TileMapCollider Components to be solid
+  Solid: boolean = false;
+
+  constructor()
+  {
     super();
 
     this.Name = "TileMap";
-    // The 2D container of the map itself
-    this.Map = new Map();
-    // Whether this TileMap should be considered by
-    //   TileMapCollider Components to be solid
-    this.Solid = false;
   }
 
-  Initialize() {
+  Initialize()
+  {
     super.Initialize();
 
     if (this.Solid)
-      PHX.AddSolidTileMap(this);
+      this.Space.PhysicsSystem.AddSolidTileMap(this);
   }
 
   // Adds the given tile at the given X and Y coordinates
-  Add(tile, x, y) {
-    // Just in case we're something with automation
+  Add(tile: Tile, x: number, y: number)
+  {
+    // Just in case we're doing something with automation
     if (tile == undefined)
       return;
 
@@ -40,9 +56,10 @@ class TileMap extends Graphical {
     let column = this.Map.get(x);
 
     // If nothing was there...
-    if (column == undefined) {
+    if (column == undefined)
+    {
       // Make a new map
-      column = new Map();
+      column = new Map<number, Tile>();
       // The new map is a column, so add
       //   the tile at the specified Y value
       column.set(y, tile);
@@ -59,19 +76,22 @@ class TileMap extends Graphical {
 
   // Reads in a 2D array of integers, using an accompanying
   //   1D array to know what to pass into the Add function
-  ReadArray(indexArray, legend) {
+  ReadArray(indexArray: number[][], legend: Tile[])
+  {
     for (let y = 0; y < indexArray.length; ++y)
       for (let x = 0; x < indexArray[y].length; ++x)
         this.Add(legend[indexArray[y][x]], x, y);
   }
 
   // Gets the tile at the given X and Y integer coordinates
-  Get(x, y) {
+  Get(x: number, y: number): Tile
+  {
     // Get the column at the indicated X value
     let column = this.Map.get(x);
 
     // If nothing was there...
-    if (column == undefined) {
+    if (column == undefined)
+    {
       // Return undefined, which the Render function will
       //   know how to handle
       return undefined;
@@ -84,75 +104,88 @@ class TileMap extends Graphical {
     }
   }
 
-  GetFromWorldPosition(position) {
+  GetFromWorldPosition(position: P5.Vector): Tile
+  {
     let shiftedX = position.x - this.Offset.x - this.Tx.X;
     let shiftedY = position.y - this.Offset.y - this.Tx.Y;
 
-    return this.Get(int(shiftedX), int(shiftedY));
+    return this.Get(Math.floor(shiftedX), Math.floor(shiftedY));
   }
 
-  GetTilePositionFromWorldPosition(position) {
+  GetTilePositionFromWorldPosition(position: P5.Vector)
+  {
     let shiftedX = position.x - this.Offset.x - this.Tx.X;
     let shiftedY = position.y - this.Offset.y - this.Tx.Y;
-    let indexX = int(shiftedX);
-    let indexY = int(shiftedY);
+    let indexX = Math.floor(shiftedX);
+    let indexY = Math.floor(shiftedY);
     let tileX = indexX + this.Offset.x + this.Tx.X;
     let tileY = indexY + this.Offset.y + this.Tx.Y;
 
-    return createVector(tileX, tileY);
+    return G.createVector(tileX, tileY);
   }
 
-  Render() {
+  Render()
+  {
     if (!this.Active) return;  // Invisible if inactive
 
-    for (const columnPair of this.Map) {
+    for (const columnPair of this.Map)
+    {
       let columnIndex = columnPair[0];
       let column = columnPair[1];
 
-      for (const tilePair of column) {
+      for (const tilePair of column)
+      {
         let rowIndex = tilePair[0];
         let tile = tilePair[1];
 
-        if (tile != undefined) {
-          push();
+        if (tile != undefined)
+        {
+          G.push();
 
-          fill(tile.Color);
-          rectMode(CENTER);
-          let x = (this.X + this.Offset.x + columnIndex) * METER;
-          let y = (this.Y + this.Offset.y + rowIndex) * METER;
-          rect(x, y, METER, METER);
+          G.fill(tile.Color);
+          G.rectMode(G.CENTER);
+          let x = (this.X + this.Offset.x + columnIndex) * Engine.Meter;
+          let y = (this.Y + this.Offset.y + rowIndex) * Engine.Meter;
+          G.rect(x, y, Engine.Meter, Engine.Meter);
 
-          pop();
+          G.pop();
         }
       }
     }
   }
 
-  CleanUp() {
+  CleanUp()
+  {
     super.CleanUp();
 
+    this.Map.clear();
+
     if (this.Solid)
-      PHX.RemoveSolidTileMap(this);
+      this.Space.PhysicsSystem.RemoveSolidTileMap(this);
   }
 }
 
 
-class TileMapCollider extends Component {
-  constructor() {
+export class TileMapCollider extends Component
+{
+  // How far from the corner each hotspot should be
+  CornerThickness: number = 1 / 4;
+  // Width of this object
+  W: number = 1;
+  // Height of this object
+  H: number = 1;
+  // The hotspots to use to check the tiles for solidity
+  Hotspots: TileMapColliderHotspot[] = [];
+
+  constructor()
+  {
     super();
 
     this.Name = "TileMapCollider";
-    // How far from the corner each hotspot should be
-    this.CornerThickness = 1 / 8;
-    // Width of this object
-    this.W = 1;
-    // Height of this object
-    this.H = 1;
-    // The hotspots to use to check the tiles for solidity
-    this.Hotspots = [];
   }
 
-  Initialize() {
+  Initialize()
+  {
     super.Initialize();
 
     this.Hotspots.length = 8;
@@ -168,127 +201,138 @@ class TileMapCollider extends Component {
     //  |     .     |
     //  4     .     7
     //  --5-------6--
-    this.Hotspots[0] = new TileMapColliderHotspot(createVector(w, -y));
-    this.Hotspots[1] = new TileMapColliderHotspot(createVector(x, -h));
-    this.Hotspots[2] = new TileMapColliderHotspot(createVector(-x, -h));
-    this.Hotspots[3] = new TileMapColliderHotspot(createVector(-w, -y));
-    this.Hotspots[4] = new TileMapColliderHotspot(createVector(-w, y));
-    this.Hotspots[5] = new TileMapColliderHotspot(createVector(-x, h));
-    this.Hotspots[6] = new TileMapColliderHotspot(createVector(x, h));
-    this.Hotspots[7] = new TileMapColliderHotspot(createVector(w, y));
+    this.Hotspots[0] = new TileMapColliderHotspot(G.createVector(w, -y));
+    this.Hotspots[1] = new TileMapColliderHotspot(G.createVector(x, -h));
+    this.Hotspots[2] = new TileMapColliderHotspot(G.createVector(-x, -h));
+    this.Hotspots[3] = new TileMapColliderHotspot(G.createVector(-w, -y));
+    this.Hotspots[4] = new TileMapColliderHotspot(G.createVector(-w, y));
+    this.Hotspots[5] = new TileMapColliderHotspot(G.createVector(-x, h));
+    this.Hotspots[6] = new TileMapColliderHotspot(G.createVector(x, h));
+    this.Hotspots[7] = new TileMapColliderHotspot(G.createVector(w, y));
   }
 
-  LateUpdate(dt) {
+  LateUpdate(dt: number)
+  {
     this.CheckHotspots();
   }
 
-  CheckHotspots() {
-    let hotspot, tile;
+  CheckHotspots()
+  {
+    let hotspot: TileMapColliderHotspot, tile: Tile;
     let position = this.Tx.Position;
+    let solidTileMap = this.Space.PhysicsSystem.SolidTileMap;
 
     hotspot = this.Hotspots[0];
-    tile = hotspot.Check(position);
+    tile = hotspot.Check(position, solidTileMap);
     let solid0 = tile != undefined && tile.Solid;
     hotspot = this.Hotspots[1];
-    tile = hotspot.Check(position);
+    tile = hotspot.Check(position, solidTileMap);
     let solid1 = tile != undefined && tile.Solid;
     hotspot = this.Hotspots[2];
-    tile = hotspot.Check(position);
+    tile = hotspot.Check(position, solidTileMap);
     let solid2 = tile != undefined && tile.Solid;
     hotspot = this.Hotspots[3];
-    tile = hotspot.Check(position);
+    tile = hotspot.Check(position, solidTileMap);
     let solid3 = tile != undefined && tile.Solid;
     hotspot = this.Hotspots[4];
-    tile = hotspot.Check(position);
+    tile = hotspot.Check(position, solidTileMap);
     let solid4 = tile != undefined && tile.Solid;
     hotspot = this.Hotspots[5];
-    tile = hotspot.Check(position);
+    tile = hotspot.Check(position, solidTileMap);
     let solid5 = tile != undefined && tile.Solid;
     hotspot = this.Hotspots[6];
-    tile = hotspot.Check(position);
+    tile = hotspot.Check(position, solidTileMap);
     let solid6 = tile != undefined && tile.Solid;
     hotspot = this.Hotspots[7];
-    tile = hotspot.Check(position);
+    tile = hotspot.Check(position, solidTileMap);
     let solid7 = tile != undefined && tile.Solid;
 
     if (solid0 || solid7)
-      this.SnapL();
+      this.SnapL(solidTileMap);
     if (solid1 || solid2)
-      this.SnapD();
+      this.SnapD(solidTileMap);
     if (solid3 || solid4)
-      this.SnapR();
+      this.SnapR(solidTileMap);
     if (solid5 || solid6)
-      this.SnapU();
+      this.SnapU(solidTileMap);
   }
 
-  SnapL() {
+  SnapL(solidTileMap: TileMap)
+  {
     // TODO:
     //   get the hotspot world position more elegantly
-    let p0 = p5.Vector.add(this.Hotspots[0].Offset, this.Tx.Position);
-    let tilePosition = PHX.SolidTileMap.GetTilePositionFromWorldPosition(p0);
+    let p0 = P5.Vector.add(this.Hotspots[0].Offset, this.Tx.Position);
+    let tilePosition = solidTileMap.GetTilePositionFromWorldPosition(p0);
     let tileLeft = tilePosition.x - 0.5;
     let snapDistance = tileLeft - p0.x;
     this.Tx.AddX(snapDistance);
   }
 
-  SnapR() {
-    let p3 = p5.Vector.add(this.Hotspots[3].Offset, this.Tx.Position);
-    let tilePosition = PHX.SolidTileMap.GetTilePositionFromWorldPosition(p3);
+  SnapR(solidTileMap: TileMap) {
+    let p3 = P5.Vector.add(this.Hotspots[3].Offset, this.Tx.Position);
+    let tilePosition = solidTileMap.GetTilePositionFromWorldPosition(p3);
     let tileRight = tilePosition.x + 0.5;
     let snapDistance = tileRight - p3.x;
     this.Tx.AddX(snapDistance);
   }
 
-  SnapD() {
-    let p1 = p5.Vector.add(this.Hotspots[1].Offset, this.Tx.Position);
-    let tilePosition = PHX.SolidTileMap.GetTilePositionFromWorldPosition(p1);
+  SnapD(solidTileMap: TileMap) {
+    let p1 = P5.Vector.add(this.Hotspots[1].Offset, this.Tx.Position);
+    let tilePosition = solidTileMap.GetTilePositionFromWorldPosition(p1);
     let tileBottom = tilePosition.y + 0.5;
     let snapDistance = tileBottom - p1.y;
     this.Tx.AddY(snapDistance);
   }
 
-  SnapU() {
-    let p6 = p5.Vector.add(this.Hotspots[6].Offset, this.Tx.Position);
-    let tilePosition = PHX.SolidTileMap.GetTilePositionFromWorldPosition(p6);
+  SnapU(solidTileMap: TileMap) {
+    let p6 = P5.Vector.add(this.Hotspots[6].Offset, this.Tx.Position);
+    let tilePosition = solidTileMap.GetTilePositionFromWorldPosition(p6);
     let tileTop = tilePosition.y - 0.5;
     let snapDistance = tileTop - p6.y;
     this.Tx.AddY(snapDistance);
   }
 
-  DebugDraw() {
-    push();
+  DebugDraw()
+  {
+    G.push();
 
-    strokeWeight(3);
-    stroke(color(255));
-    for (let i = 0; i < this.Hotspots.length; ++i) {
-      let x = p5.Vector.add(this.Tx.Position, this.Hotspots[i].Offset).x * METER;
-      let y = p5.Vector.add(this.Tx.Position, this.Hotspots[i].Offset).y * METER;
-      point(x, y);
+    G.strokeWeight(3);
+    G.stroke(G.color(255));
+
+    for (const hotspot of this.Hotspots)
+    {
+      let x = P5.Vector.add(this.Tx.Position, hotspot.Offset).x * Engine.Meter;
+      let y = P5.Vector.add(this.Tx.Position, hotspot.Offset).y * Engine.Meter;
+      G.point(x, y);
     }
 
-    pop();
+    G.pop();
   }
 
-  CleanUp() {
+  CleanUp()
+  {
     this.Hotspots = [];
   }
 }
 
 
-class TileMapColliderHotspot {
-  constructor(offset) {
+class TileMapColliderHotspot
+{
+  Offset: P5.Vector;
+
+  constructor(offset: P5.Vector)
+  {
     this.Offset = offset;
   }
 
-  Check(position) {
-    let tileMap = PHX.SolidTileMap;
-
+  Check(position: P5.Vector, tileMap: TileMap): Tile
+  {
     if (tileMap == null)
       return undefined;
 
-    let worldPos = p5.Vector.add(position, this.Offset);
-    let x = int(worldPos.x);
-    let y = int(worldPos.y);
+    let worldPos = P5.Vector.add(position, this.Offset);
+    let x = Math.floor(worldPos.x);
+    let y = Math.floor(worldPos.y);
     return tileMap.Get(x, y);
   }
 }

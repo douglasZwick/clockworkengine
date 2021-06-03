@@ -1,29 +1,54 @@
 import P5 from "p5"
+import Engine, { IM } from "./Engine"
+import { ImMode } from "./InputMaster"
+import { TestScene } from "./Scene"
+
+
 var canvasW = 640;
 var canvasH = 360;
-var clearColor;
+var clearColor: P5.Color;
+
+export var G: P5;
+
 
 const sketch = (p5: P5) =>
 {
-    function setup() {
-        createCanvas(canvasW, canvasH);
+  const engine = new Engine();
 
-        ENGINE = new Engine();
-        let testScene = new TestScene();
-        SPACE.Load(testScene);
+  p5.setup = function()
+  {
+    p5.createCanvas(canvasW, canvasH);
 
-        clearColor = color(40);
+    G = p5;
 
-        frameRate(60);
-    }
+    let testScene = new TestScene();
+    engine.Space.Load(testScene);
+    
+    clearColor = G.color(40);
+    
+    p5.frameRate(60);
+  }
+  
+  p5.draw = function()
+  {
+    p5.background(clearColor);
 
-    function draw() {
-        background(clearColor);
+    engine.Update(dt());
+  }
 
-        ENGINE.Update(dt());
-    }
+  p5.keyPressed = function ()
+  {
+    if (IM.Mode !== ImMode.Replay)
+    IM.Curr[G.keyCode] = true;
+  }
+  
+  p5.keyReleased = function ()
+  {
+    if (IM.Mode !== ImMode.Replay)
+      IM.Curr[G.keyCode] = false;
+  }
 
-    function dt() { return deltaTime / 1000; }
+  function dt() { return p5.deltaTime / 1000; }
 }
 
 new P5(sketch)

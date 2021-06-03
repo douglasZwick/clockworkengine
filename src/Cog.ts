@@ -1,9 +1,18 @@
+import P5 from "p5"
+import { G } from "./main"
+import Engine, { Space, Collision, IM } from "./Engine"
+import { Key } from "./InputMaster"
+
 // A CountedObject is anything with a unique Id
-class CountedObject {
-  constructor() {
+class CountedObject
+{
+  Id: number;
+
+  constructor()
+  {
     // By getting the engine's NextId,
     //   this object's Id is always unique
-    this.Id = ENGINE.NextId();
+    this.Id = Engine.NextId();
   }
 }
 
@@ -11,35 +20,45 @@ class CountedObject {
 // Cog is "GOC" backwards, which is Game Object Composition.
 // Without Components, a Cog is nothing but a name, a unique
 //   Id, and some flags.
-class Cog extends CountedObject {
-  constructor() {
+export class Cog extends CountedObject
+{
+  Name: string = "Cog";
+  // This Cog's Tx component
+  Tx: Tx = null;
+  // The array of Components attached to this Cog
+  Components: Component[] = [];
+  // If true, this Cog will be pruned at the end of the frame
+  Marked: boolean = false;
+  // False until this Cog's Initialize function is called.
+  //   I currently do not remember why I wanted this....
+  Initialized: boolean = false;
+  // The Space that this Cog belongs to
+  Space: Space = null;
+
+  constructor(space: Space)
+  {
     super();
 
-    this.Name = "Cog";
-    // This Cog's Tx component
-    this.Tx = null;
-    // The array of Components attached to this Cog
-    this.Components = [];
-    // If true, this Cog will be pruned at the end of the frame
-    this.Marked = false;
-    // False until this Cog's Initialize function is called.
-    //   I currently do not remember why I wanted this....
-    this.Initialized = false;
+    this.Space = space;
   }
 
   // Accessors for the X and Y positions of the Tx
-  get X() { return this.Tx.X; }
+  get X()  { return this.Tx.X; }
   set X(x) { this.Tx.X = x; }
-  get Y() { return this.Tx.Y; }
+  get Y()  { return this.Tx.Y; }
   set Y(y) { this.Tx.Y = y; }
 
   // Returns a useful string representation of this Cog
-  toString() { return `[Cog ${this.Name}|${this.Id}]`; }
+  toString(): string
+  {
+    return `[Cog ${this.Name}|${this.Id}]`;
+  }
 
   // Attaches the given Component to this Cog
-  Add(component) {
+  Add(component: Component)
+  {
     // Keep special track of it if it's the Tx
-    if (component.ComponentType === "Tx")
+    if (component instanceof Tx)
       this.Tx = component;
 
     // Adds it to the array and sets its Owner to this Cog
@@ -49,7 +68,8 @@ class Cog extends CountedObject {
 
   // Finds and returns the first attached Component
   //   of the given type, if any
-  Get(componentType) {
+  Get(componentType: string): Component
+  {
     for (const component of this.Components)
       if (component.ComponentType === componentType)
         return component;
@@ -59,8 +79,9 @@ class Cog extends CountedObject {
 
   // Finds and returns an array of all the attached Components
   //   of the given type, if any
-  GetAll(componentType) {
-    let components = [];
+  GetAll(componentType: string): Component[]
+  {
+    let components = Array<Component>();
 
     for (const component of this.Components)
       if (component.ComponentType === componentType)
@@ -71,7 +92,8 @@ class Cog extends CountedObject {
 
   // Finds and returns the first attached Component
   //   with the given name, if any
-  Find(name) {
+  Find(name: string): Component
+  {
     for (const component of this.Components)
       if (component.Name === name)
         return component;
@@ -81,8 +103,9 @@ class Cog extends CountedObject {
 
   // Finds and returns an array of all the attached Components
   //   with the given name, if any
-  FindAll(name) {
-    let components = [];
+  FindAll(name: string): Component[]
+  {
+    let components = Array<Component>();
 
     for (const component of this.Components)
       if (component.Name === name)
@@ -92,7 +115,8 @@ class Cog extends CountedObject {
   }
 
   // Initializes all this Cog's Components
-  Initialize() {
+  Initialize()
+  {
     for (const component of this.Components)
       component.Initialize();
 
@@ -100,7 +124,8 @@ class Cog extends CountedObject {
   }
 
   // Updates all this Cog's Components' behaviors
-  LogicUpdate(dt) {
+  LogicUpdate(dt: number)
+  {
     for (const component of this.Components)
       component.LogicUpdate(dt);
   }
@@ -109,48 +134,55 @@ class Cog extends CountedObject {
   //   might care too
   // TODO:
   //   NOTHING CALLS THIS, so get rid of it??????????
-  PhysicsUpdate(dt) {
+  PhysicsUpdate(dt: number)
+  {
     for (const component of this.Components)
       component.PhysicsUpdate(dt);
   }
 
   // Useful for anything that should happen after physics
-  LateUpdate(dt) {
+  LateUpdate(dt: number)
+  {
     for (const component of this.Components)
       component.LateUpdate(dt);
   }
 
   // Calls the DebugDraw function of each component
   //   that has it
-  DebugDraw() {
+  DebugDraw()
+  {
     for (const component of this.Components)
       component.DebugDraw();
   }
 
   // Called on the first frame that this Cog
   //   is colliding with another Cog
-  CollisionStarted(collision) {
+  CollisionStarted(collision: Collision)
+  {
     for (const component of this.Components)
       component.CollisionStarted(collision);
   }
 
   // Called every frame after the first that this Cog
   //   is colliding with another Cog
-  CollisionPersisted(collision) {
+  CollisionPersisted(collision: Collision)
+  {
     for (const component of this.Components)
       component.CollisionPersisted(collision);
   }
 
   // Called the first frame that this Cog
   //   is no longer colliding with another Cog
-  CollisionEnded(collision) {
+  CollisionEnded(collision: Collision)
+  {
     for (const component of this.Components)
       component.CollisionEnded(collision);
   }
 
   // Destroys this Cog. This means "marking" it for
   //   actual destruction at the end of the frame
-  Destroy() {
+  Destroy()
+  {
     if (this.Marked) return;
 
     this.Marked = true;
@@ -161,7 +193,8 @@ class Cog extends CountedObject {
 
   // Runs any cleanup code that this Cog's components
   //   should run when they're about to be gone for good
-  CleanUp() {
+  CleanUp()
+  {
     for (const component of this.Components)
       component.CleanUp();
   }
@@ -170,19 +203,25 @@ class Cog extends CountedObject {
 
 // Base Component class. Highly flexible and adaptable
 //   atomic nugget of gameplay goodness
-class Component extends CountedObject {
-  constructor() {
+export class Component extends CountedObject
+{
+  Name: string = "Component";
+  // Doesn't inherently do anything, but derived classes can use it
+  Active: boolean = true;
+  // See comments on the corresponding flag on Cog
+  Initialized: boolean = false;
+  // The Cog that has this Component attached to it
+  Owner: Cog = null;
+  
+  constructor()
+  {
     super();
-
-    this.Name = "Component";
-    // Doesn't inherently do anything, but derived classes can use it
-    this.Active = true;
-    // See comments on the corresponding flag on Cog
-    this.Initialized = false;
   }
-
-  // The ComponentType identifies this Component's type. (Replace soon!)
+  
+  // The ComponentType identifies this Component's type
   get ComponentType() { return this.constructor.name; }
+  // The Space that this Component's Owner belongs to
+  get Space() { return this.Owner.Space; }
 
   // All Components have getters for their Owner's Tx
   get Tx() { return this.Owner.Tx; }
@@ -190,7 +229,10 @@ class Component extends CountedObject {
   get Y() { return this.Tx.Y; }
 
   // Returns a useful string representation of this Component
-  toString() { return `[Component|${this.ComponentType} ${this.Name}|${this.Id}]`; }
+  toString(): string
+  {
+    return `[Component|${this.ComponentType} ${this.Name}|${this.Id}]`;
+  }
 
   // These can all be overridden to do whatever!
 
@@ -198,19 +240,19 @@ class Component extends CountedObject {
   //   Any startup code should go in here
   Initialize() { this.Initialized = true; }
   //   Most ordinary gameplay behavior should go in here
-  LogicUpdate(dt) { }
+  LogicUpdate(dt: number) { }
   //   Mostly just for Body
-  PhysicsUpdate(dt) { }
+  PhysicsUpdate(dt: number) { }
   //   Useful for anything that should happen after physics
-  LateUpdate(dt) { }
+  LateUpdate(dt: number) { }
   //   How this component should be graphically represented for debugging
   DebugDraw() { }
   //   Add whatever you want to happen when this Cog begins touching something
-  CollisionStarted(collision) { }
+  CollisionStarted(collision: Collision) { }
   //   Add whatever you want to happen when an ongoing collision continues
-  CollisionPersisted(collision) { }
+  CollisionPersisted(collision: Collision) { }
   //   Add whatever should happen when a previous collision ends
-  CollisionEnded(collision) { }
+  CollisionEnded(collision: Collision) { }
   //   Gameplay Code that should run when this Cog is about to be destroyed
   Destroyed() { }
   //   Cleanup code (memory, references, etc) for when this Cog is being pruned
@@ -220,62 +262,74 @@ class Component extends CountedObject {
 
 // Short for "Transform". Keeps track of this Cog's
 //   position, rotation, and scale in space
-class Tx extends Component {
-  constructor() {
+export class Tx extends Component
+{
+  Position: P5.Vector = G.createVector();
+  Rotation: number = 0;
+  Scale: P5.Vector = G.createVector();
+
+  constructor()
+  {
     super();
 
     this.Name = "Tx";
-    this.Position = new p5.Vector();
-    this.Rotation = 0;
-    this.Scale = new p5.Vector();
   }
 
   get X() { return this.Position.x; }
   get Y() { return this.Position.y; }
 
-  set X(x) {
+  set X(x)
+  {
     let pos = this.Position;
     pos.x = x;
     this.Position = pos;
   }
 
-  set Y(y) {
+  set Y(y)
+  {
     let pos = this.Position;
     pos.y = y;
     this.Position = pos;
   }
 
-  Add(vec) {
-    this.Position.add(vec);
+  Add(vec: P5.Vector): P5.Vector
+  {
+    return this.Position.add(vec);
   }
 
-  AddX(x) {
+  AddX(x: number)
+  {
     this.X += x;
   }
 
-  AddY(y) {
+  AddY(y: number)
+  {
     this.Y += y;
   }
 }
 
 
 // Base Graphical class. Stuff you can see
-class Graphical extends Component {
-  constructor() {
+export class Graphical extends Component
+{
+  // Which graphical layer should this use?
+  Layer: number = 0;
+  // Offset vector, applied to the Tx position before drawing
+  Offset: P5.Vector = G.createVector();
+
+  constructor()
+  {
     super();
 
     this.Name = "Graphical";
-    // Which graphical layer should this use?
-    this.Layer = 0;
-    // Offset vector, applied to the Tx position before drawing
-    this.Offset = new p5.Vector();
   }
 
   // Add this Graphical to the GraphicsSystem
-  Initialize() {
+  Initialize()
+  {
     super.Initialize();
 
-    GFX.Add(this);
+    this.Space.GraphicsSystem.Add(this);
   }
 
   // Override this to draw this Graphical with p5 calls
@@ -283,160 +337,195 @@ class Graphical extends Component {
 
   // Remove this Graphical from the GraphicsSystem.
   //   Important to do this before we lose access to this Component!
-  CleanUp() {
-    GFX.Remove(this);
+  CleanUp()
+  {
+    this.Space.GraphicsSystem.Remove(this);
   }
 }
 
 
 // Represents all the shapes of p5 that I care to implement here
-class PrimitiveShape extends Graphical {
-  constructor() {
+export class PrimitiveShape extends Graphical
+{
+  // Interior color for rect/ellipse/circle/text, maybe others?
+  Fill: P5.Color = G.color(255);
+  // Stroke color
+  Stroke: P5.Color = G.color(255);
+  // Whether this should be drawn with a stroke
+  UseStroke: boolean = false;
+  // Whether this should be drawn filled
+  UseFill: boolean = true;
+  // The thickness of the stroke to be used (in METERs)
+  StrokeWeight: number = 0;
+
+  constructor()
+  {
     super();
 
     this.Name = "PrimitiveShape";
-    // Interior color for rect/ellipse/circle/text, maybe others?
-    this.Fill = color(255);
-    // Stroke color
-    this.Stroke = color(255);
-    // Whether this should be drawn with a stroke
-    this.UseStroke = false;
-    // Whether this should be drawn filled
-    this.UseFill = true;
-    // The thickness of the stroke to be used (in METERs)
-    this.StrokeWeight = 0;
   }
 }
 
 
 // Very simple Graphical: just a spot of color
-class Point extends PrimitiveShape {
-  constructor() {
+export class Point extends PrimitiveShape
+{
+  // The width and height of this point in METERs
+  Diameter: number = 1;
+
+  constructor()
+  {
     super();
 
     this.Name = "Point";
-    // The width and height of this point in METERs
-    this.Diameter = 1;
   }
 
   // Convenience accessors
-  get Radius() { return this.Diameter / 2; }
+  get Radius()  { return this.Diameter / 2; }
   set Radius(r) { this.Diameter = 2 * r; }
-  get Color() { return this.Stroke; }
-  set Color(c) { this.Stroke = c; }
+  get Color()   { return this.Stroke; }
+  set Color(c)  { this.Stroke = c; }
 
-  Render() {
+  Render()
+  {
     if (!this.Active) return;  // Invisible if inactive
 
-    push();
+    G.push();
 
-    stroke(this.Stroke);       // Points are drawn with stroke color
-    strokeWeight(this.Diameter * METER);
-    let x = (this.X + this.Offset.x) * METER;
-    let y = (this.Y + this.Offset.y) * METER;
-    point(x, y);
+    G.stroke(this.Stroke);       // Points are drawn with stroke color
+    G.strokeWeight(this.Diameter * Engine.Meter);
+    let x = (this.X + this.Offset.x) * Engine.Meter;
+    let y = (this.Y + this.Offset.y) * Engine.Meter;
+    G.point(x, y);
 
-    pop();
+    G.pop();
   }
 }
 
 
 // Rectangular Graphical with stroke and fill
-class Rect extends PrimitiveShape {
-  constructor() {
+export class Rect extends PrimitiveShape
+{
+  // Width
+  W: number = 1;
+  // Height
+  H: number = 1;
+
+  constructor()
+  {
     super();
 
     this.Name = "Rect";
-    // Width
-    this.W = 1;
-    // Height
-    this.H = 1;
   }
 
-  Render() {
+  Render()
+  {
     if (!this.Active) return;  // Invisible if inactive
 
-    push();
+    G.push();
 
     if (this.UseFill)
-      fill(this.Fill);
+      G.fill(this.Fill);
     else
-      noFill();
+      G.noFill();
 
-    if (this.UseStroke) {
-      stroke(this.Stroke);
-      strokeWeight(this.StrokeWeight * METER);
+    if (this.UseStroke)
+    {
+      G.stroke(this.Stroke);
+      G.strokeWeight(this.StrokeWeight * Engine.Meter);
     }
-    else {
-      noStroke();
+    else
+    {
+      G.noStroke();
     }
 
-    rectMode(CENTER);
-    let x = (this.X + this.Offset.x) * METER;
-    let y = (this.Y + this.Offset.y) * METER;
-    let w = (this.W) * METER;
-    let h = (this.H) * METER;
-    rect(x, y, w, h);
+    G.rectMode(G.CENTER);
+    let x = (this.X + this.Offset.x) * Engine.Meter;
+    let y = (this.Y + this.Offset.y) * Engine.Meter;
+    let w = (this.W) * Engine.Meter;
+    let h = (this.H) * Engine.Meter;
+    G.rect(x, y, w, h);
 
-    pop();
+    G.pop();
   }
 }
 
 
 // Base Collider class. Use by the PhysicsSystem to
 //   check if this Cog is touching other Cogs, etc.
-class Collider extends Component {
-  constructor() {
+export class Collider extends Component
+{
+  // Colliders are either dynamic or static
+  _Dynamic: boolean = false;
+  // Applied to Tx position before collision checks
+  Offset: P5.Vector = G.createVector();
+  // List of all contacts this Collider currently has with other Colliders
+  Contacts: Contact[] = [];
+
+  constructor()
+  {
     super();
 
     this.Name = "Collider";
-    // Colliders are either dynamic or static
-    this._Dynamic = false;
-    // Applied to Tx position before collision checks
-    this.Offset = new p5.Vector();
-    // List of all contacts this Collider currently has with other Colliders
-    this.Contacts = [];
   }
 
   // Interface for changing whether something is
   //   dynamic or static at runtime
   get Dynamic() { return this._Dynamic; }
-  set Dynamic(dynamic) {
-    if (dynamic !== this._Dynamic) {
-      PHX.RemoveCollider(this);
+  set Dynamic(dynamic)
+  {
+    if (this.Initialized)
+    {
+      if (dynamic !== this._Dynamic)
+      {
+        this.Space.PhysicsSystem.RemoveCollider(this);
+        this._Dynamic = dynamic;
+        this.Space.PhysicsSystem.AddCollider(this);
+      }
+    }
+    else
+    {
       this._Dynamic = dynamic;
-      PHX.AddCollider(this);
     }
   }
 
   // Adds this Collider to the PhysicsSystem
-  Initialize() {
+  Initialize()
+  {
     super.Initialize();
 
-    PHX.AddCollider(this);
+    this.Space.PhysicsSystem.AddCollider(this);
   }
 
   // Adds a new contact. Called when a collision starts
-  AddContact(contact) {
+  AddContact(contact: Contact)
+  {
     this.Contacts.push(contact);
   }
 
   // Checks whether this Collider is already touching the given Collider
-  ContactExistsWith(collider) {
-    return this.Contacts.find(contact => contact.OtherCollider === collider) !== undefined;
+  ContactExistsWith(collider: Collider): boolean
+  {
+    let find = (contact: Contact): boolean =>
+    { return contact.OtherCollider.Id === collider.Id; };
+
+    return this.Contacts.find(find) !== undefined;
   }
 
   // Removes any contact that may exist with the given Collider
-  PruneContactWith(collider) {
+  PruneContactWith(collider: Collider): boolean
+  {
+    let find = (contact: Contact): boolean =>
+    { return contact.OtherCollider.Id === collider.Id; };
+
     // First, find whether such a contact exists
-    let index = this.Contacts.findIndex(contact => contact.OtherCollider === collider);
+    let index = this.Contacts.findIndex(find);
 
     // If nothing was found, return false
     if (index < 0)
       return false;
 
     // Otherwise, prune that contact from this list and return true
-    let contact = this.Contacts[index];
     this.Contacts[index] = this.Contacts[this.Contacts.length - 1];
     --this.Contacts.length;
 
@@ -445,22 +534,26 @@ class Collider extends Component {
 
   // Removes this Collider from the PhysicsSystem.
   //   Important to do this before we lose access to this Component!
-  CleanUp() {
-    PHX.RemoveCollider(this);
+  CleanUp()
+  {
+    this.Space.PhysicsSystem.RemoveCollider(this);
   }
 }
 
 
 // Axis-aligned bounding box collider
-class AabbCollider extends Collider {
-  constructor() {
+export class AabbCollider extends Collider
+{
+  // Width
+  W: number = 1;
+  // Height
+  H: number = 1;
+
+  constructor()
+  {
     super();
 
     this.Name = "AabbCollider";
-    // Width
-    this.W = 1;
-    // Height
-    this.H = 1;
   }
 
   // Getters for this Collider's extents in the world
@@ -472,62 +565,72 @@ class AabbCollider extends Collider {
 
 
 // Moves its Cog around in space using velocity
-class Body extends Component {
-  constructor() {
+export class Body extends Component
+{
+  Velocity: P5.Vector = G.createVector();
+  AngularVelocity: number = 0;
+  Gravity: P5.Vector = G.createVector(0, 9.81);
+
+  constructor()
+  {
     super();
 
     this.Name = "Body";
-    this.Velocity = new p5.Vector();
-    this.AngularVelocity = 0;
-    this.Gravity = createVector(0, 9.81);
   }
 
   // Adds this Body to the PhysicsSystem
-  Initialize() {
-    PHX.AddBody(this);
+  Initialize()
+  {
+    this.Space.PhysicsSystem.AddBody(this);
   }
 
   // Applies numbers to other numbers!
-  PhysicsUpdate(dt) {
+  PhysicsUpdate(dt: number)
+  {
     // Applies this Body's velocity to its Transform's position
-    let dPos = p5.Vector.mult(this.Velocity, dt);
+    let dPos = P5.Vector.mult(this.Velocity, dt);
     this.Tx.Add(dPos);
 
     // Applies this Body's gravity to its velocity
-    let dVel = p5.Vector.mult(this.Gravity, dt);
+    let dVel = P5.Vector.mult(this.Gravity, dt);
     this.Velocity.add(dVel);
   }
 
   // Removes this Body from the PhysicsSystem.
   //   Important to do this before we lose access to this Component!
-  CleanUp() {
-    PHX.RemoveBody(this);
+  CleanUp()
+  {
+    this.Space.PhysicsSystem.RemoveBody(this);
   }
 }
 
 
 // Super simple test component for all-direction keyboard movement
-class BasicMover extends Component {
-  constructor() {
+export class BasicMover extends Component
+{
+  // How fast to go in meters per second
+  Speed: number = 8;
+
+  constructor()
+  {
     super();
 
     this.Name = "BasicMover";
-    // How fast to go in units per second
-    this.Speed = 8;
   }
 
-  LogicUpdate(dt) {
+  LogicUpdate(dt: number)
+  {
     if (!this.Active) return; // Don't do anything if inactive
 
-    let movement = new p5.Vector();
+    let movement = G.createVector();
 
-    if (keyIsDown(RIGHT_ARROW))
+    if (IM.Down(Key.Right))
       movement.x += 1;
-    if (keyIsDown(LEFT_ARROW))
+    if (IM.Down(Key.Left))
       movement.x -= 1;
-    if (keyIsDown(UP_ARROW))
+    if (IM.Down(Key.Up))
       movement.y -= 1;
-    if (keyIsDown(DOWN_ARROW))
+    if (IM.Down(Key.Down))
       movement.y += 1;
 
     movement.normalize().mult(this.Speed * dt);
@@ -538,13 +641,9 @@ class BasicMover extends Component {
 
 
 // Contact info about the overlap of two colliding objects
-class Contact {
-  constructor() {
-    // The other collider that this one is touching
-    this.OtherCollider = null;
-    // The world-space position of the contact
-    this.Position = new p5.Vector();
-    // The vector that should be applied to resolve collision
-    this.ResolutionVector = new p5.Vector();
-  }
+export class Contact
+{
+  OtherCollider: Collider = null;
+  Position: P5.Vector = G.createVector();
+  ResolutionVector: P5.Vector = G.createVector();
 }

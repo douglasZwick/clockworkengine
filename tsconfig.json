@@ -2,6 +2,7 @@
   // NOTE: This is run by webpack, so common options (e.g. input / output directories)
   // aren't specified here - running tsc directly will produce different results
   "compilerOptions": {
+    "target": "ES6",
     "module": "commonjs",
     "esModuleInterop": true,
     // You can write straight js
@@ -12,5 +13,5 @@
     ],
     // We're using npm, all modules are node
     "moduleResolution": "node",
-  }
+  },
 }
