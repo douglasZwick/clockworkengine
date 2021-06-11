@@ -2,12 +2,12 @@ import P5 from "p5"
 import { G } from "./main"
 import Engine, { IM } from "./Engine"
 import { Collision } from "./PhysicsSystem"
-import { Key } from "./InputMaster"
 import Space from "./Space";
 import CountedObject from "./CountedObject"
 import Component from "./Component"
 import Graphical from "./Graphical"
 import Tx from "./Tx"
+import { Contact } from "./PhysicsSystem"
 
 
 // Cog is "GOC" backwards, which is Game Object Composition.
@@ -466,13 +466,4 @@ export class Body extends Component
   {
     this.Space.PhysicsSystem.RemoveBody(this);
   }
-}
-
-
-// Contact info about the overlap of two colliding objects
-export class Contact
-{
-  OtherCollider: Collider = null;
-  Position: P5.Vector = G.createVector();
-  ResolutionVector: P5.Vector = G.createVector();
 }

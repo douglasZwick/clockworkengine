@@ -1,5 +1,5 @@
 import P5 from "p5"
-import { Cog, Collider, AabbCollider, Contact } from "./Cog";
+import { Cog, Collider, AabbCollider } from "./Cog";
 import Engine from "./Engine";
 import HotspotCollider from "./HotspotCollider";
 import { TileMap } from "./TileMap";
@@ -279,4 +279,13 @@ export class Collision
 
   // The other Cog involved in a collision
   Other: Cog = null;
+}
+
+
+// Contact info about the overlap of two colliding objects
+export class Contact
+{
+  OtherCollider: Collider = null;
+  Position: P5.Vector = null;
+  ResolutionVector: P5.Vector = null;
 }
