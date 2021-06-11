@@ -2,8 +2,9 @@ import P5 from "p5"
 import { G } from "./main"
 import { AabbCollider, BasicMover, Body, Rect, Tx } from "./Cog";
 import { Tile, TileMap } from "./TileMap";
-import { HotspotCollider } from "./HotspotCollider"
+import HotspotCollider from "./HotspotCollider"
 import { Space } from "./Engine"
+import TileMapCollider from "./TileMapCollider";
 
 
 export class Scene
@@ -225,6 +226,9 @@ export class TestScene extends Scene
     tileMap.ReadArray(indexArray, legend);
     tileMap.Offset = G.createVector(0.5, 0.5);
     tileMap.Solid = true;
+
+    let tileMapCollider = new TileMapCollider();
+    tileMapCog.Add(tileMapCollider);
 
     tileMapCog.Initialize();
   }

@@ -5,7 +5,7 @@ import { G } from "./main";
 import { Tile, TileMap } from "./TileMap";
 
 
-export class HotspotCollider extends Component
+export default class HotspotCollider extends Component
 {
   // How far from the corner each hotspot should be
   CornerThickness: number = 1 / 4;
@@ -54,23 +54,19 @@ export class HotspotCollider extends Component
     this.Hotspots[5] = new TileMapHotspot(G.createVector(-w, y));
     this.Hotspots[6] = new TileMapHotspot(G.createVector(-x, h));
     this.Hotspots[7] = new TileMapHotspot(G.createVector(x, h));
+
+    this.Space.PhysicsSystem.AddHotspotCollider(this);
   }
 
-  LateUpdate(dt: number)
-  {
-    this.CheckHotspots();
-  }
-
-  CheckHotspots()
+  CheckHotspots(tileMap: TileMap)
   {
     let hotspot: TileMapHotspot;
     let tileA: Tile, tileB: Tile, solidTile: Tile;
-    let solidTileMap = this.Space.PhysicsSystem.SolidTileMap;
 
     hotspot = this.Hotspots[0];
-    tileA = hotspot.Check(this.Tx, solidTileMap);
+    tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[1];
-    tileB = hotspot.Check(this.Tx, solidTileMap);
+    tileB = hotspot.Check(this.Tx, tileMap);
 
     if (tileA != undefined && tileA.Solid)
       solidTile = tileA;
@@ -78,14 +74,14 @@ export class HotspotCollider extends Component
       solidTile = tileB;
 
     if (solidTile != undefined)
-      this.SnapL(solidTileMap.GetTileWorldLeftFromIndex(solidTile.X));
+      this.SnapL(tileMap.GetTileWorldLeftFromIndex(solidTile.X));
 
     solidTile = undefined;
 
     hotspot = this.Hotspots[2];
-    tileA = hotspot.Check(this.Tx, solidTileMap);
+    tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[3];
-    tileB = hotspot.Check(this.Tx, solidTileMap);
+    tileB = hotspot.Check(this.Tx, tileMap);
 
     if (tileA != undefined && tileA.Solid)
       solidTile = tileA;
@@ -93,14 +89,14 @@ export class HotspotCollider extends Component
       solidTile = tileB;
 
     if (solidTile != undefined)
-      this.SnapD(solidTileMap.GetTileWorldBottomFromIndex(solidTile.Y));
+      this.SnapD(tileMap.GetTileWorldBottomFromIndex(solidTile.Y));
 
     solidTile = undefined;
 
     hotspot = this.Hotspots[4];
-    tileA = hotspot.Check(this.Tx, solidTileMap);
+    tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[5];
-    tileB = hotspot.Check(this.Tx, solidTileMap);
+    tileB = hotspot.Check(this.Tx, tileMap);
 
     if (tileA != undefined && tileA.Solid)
       solidTile = tileA;
@@ -108,14 +104,14 @@ export class HotspotCollider extends Component
       solidTile = tileB;
 
     if (solidTile != undefined)
-      this.SnapR(solidTileMap.GetTileWorldRightFromIndex(solidTile.X));
+      this.SnapR(tileMap.GetTileWorldRightFromIndex(solidTile.X));
     
     solidTile = undefined;
 
     hotspot = this.Hotspots[6];
-    tileA = hotspot.Check(this.Tx, solidTileMap);
+    tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[7];
-    tileB = hotspot.Check(this.Tx, solidTileMap);
+    tileB = hotspot.Check(this.Tx, tileMap);
 
     if (tileA != undefined && tileA.Solid)
       solidTile = tileA;
@@ -123,7 +119,7 @@ export class HotspotCollider extends Component
       solidTile = tileB;
 
     if (solidTile != undefined)
-      this.SnapU(solidTileMap.GetTileWorldTopFromIndex(solidTile.Y));
+      this.SnapU(tileMap.GetTileWorldTopFromIndex(solidTile.Y));
   }
 
   SnapL(tileLeft: number)
@@ -170,6 +166,7 @@ export class HotspotCollider extends Component
   CleanUp()
   {
     this.Hotspots = [];
+    this.Space.PhysicsSystem.RemoveHotspotCollider(this);
   }
 }
 

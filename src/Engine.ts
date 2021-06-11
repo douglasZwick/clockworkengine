@@ -15,6 +15,8 @@ import InputMaster, { ImMode, Key } from "./InputMaster"
 import P5 from "p5"
 import { G } from "./main"
 import { DebugShape, DebugRect, DebugLine, DebugPoint } from "./DebugDraw"
+import TileMapCollider from "./TileMapCollider"
+import HotspotCollider from "./HotspotCollider"
 
 
 export var IM: InputMaster;
@@ -294,6 +296,10 @@ export class PhysicsSystem
   DynamicList: Collider[] = [];
   // The array of all the Body components present
   BodyList: Body[] = [];
+  // The array of any TileMaps that should do collision checking
+  TileMapColliderList: TileMapCollider[] = [];
+  // The array of any HotspotColliders that are present
+  HotspotColliderList: HotspotCollider[] = [];
   // The TileMap, if any, that should be considered by
   //   TileMapCollider Components to be solid
   SolidTileMap: TileMap = null;
@@ -350,6 +356,50 @@ export class PhysicsSystem
       }
     }
   }
+
+  AddTileMapCollider(tileMapCollider: TileMapCollider)
+  {
+    this.TileMapColliderList.push(tileMapCollider);
+  }
+
+  RemoveTileMapCollider(tileMapCollider: TileMapCollider)
+  {
+    let length = this.TileMapColliderList.length;
+
+    for (let i = 0; i < length; ++i)
+    {
+      if (this.TileMapColliderList[i].Id === tileMapCollider.Id)
+      {
+        this.TileMapColliderList[i] = this.TileMapColliderList[length - 1];
+        --this.TileMapColliderList.length;
+
+        return;
+      }
+    }
+  }
+
+  AddHotspotCollider(hotspotCollider: HotspotCollider)
+  {
+    this.HotspotColliderList.push(hotspotCollider);
+  }
+
+  RemoveHotspotCollider(hotspotCollider: HotspotCollider)
+  {
+    // TODO:
+    //   Duhhh write a function that removes from an array ya dingus!!!!
+    let length = this.HotspotColliderList.length;
+
+    for (let i = 0; i < length; ++i)
+    {
+      if (this.HotspotColliderList[i].Id === hotspotCollider.Id)
+      {
+        this.HotspotColliderList[i] = this.HotspotColliderList[length - 1];
+        --this.HotspotColliderList.length;
+
+        return;
+      }
+    }
+  }
   
   AddSolidTileMap(tileMap: TileMap)
   {
@@ -369,6 +419,7 @@ export class PhysicsSystem
       body.PhysicsUpdate(dt);
     
     this.CheckCollisions();
+    this.CheckTileMaps();
   }
   
   // Detects collisions (later will resolve as well),
@@ -484,6 +535,13 @@ export class PhysicsSystem
     a.Owner.CollisionEnded(collision);
     collision.Other = a.Owner;
     b.Owner.CollisionEnded(collision);
+  }
+
+  CheckTileMaps()
+  {
+    for (const tileMapCollider of this.TileMapColliderList)
+      for (const hotspotCollider of this.HotspotColliderList)
+        hotspotCollider.CheckHotspots(tileMapCollider.TileMap);
   }
 }
 
