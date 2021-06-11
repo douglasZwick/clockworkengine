@@ -4,7 +4,7 @@ import Engine from "./Engine";
 import HotspotCollider from "./HotspotCollider";
 import { TileMap } from "./TileMap";
 import TileMapCollider from "./TileMapCollider";
-import { Body } from "./Cog"
+import Body from "./Body"
 
 
 // Updates all the Bodies to apply their velocities

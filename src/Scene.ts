@@ -1,11 +1,12 @@
 import { G } from "./main"
 import Tx from "./Tx"
-import { AabbCollider, Body, Rect } from "./Cog";
+import { AabbCollider, Rect } from "./Cog";
 import { Tile, TileMap } from "./TileMap";
 import HotspotCollider from "./HotspotCollider"
 import Space from "./Space"
 import TileMapCollider from "./TileMapCollider";
 import BasicMover from "./BasicMover";
+import Body from "./Body"
 
 
 export class Scene
