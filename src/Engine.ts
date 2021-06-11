@@ -12,13 +12,24 @@ import { Scene } from "./Scene"
 import { Graphical, Collider, AabbCollider, Body, Contact } from "./Cog"
 import { TileMap } from "./TileMap"
 import InputMaster, { ImMode, Key } from "./InputMaster"
+import P5 from "p5"
+import { G } from "./main"
+import { DebugShape, DebugRect, DebugLine, DebugPoint } from "./DebugDraw"
 
 
 export var IM: InputMaster;
 
 
+enum DtMode
+{
+  Actual,
+  Fixed,
+}
+
+
 export default class Engine
 {
+  static Instance: Engine;
   // The IdCounter is used by CountedObjects to get unique ID numbers
   static IdCounter: number = 0;
   // Defines the number of world units per logical "meter"
@@ -28,9 +39,14 @@ export default class Engine
   PhysicsSystem: PhysicsSystem;
   GraphicsSystem: GraphicsSystem;
   InputMaster: InputMaster;
+  DtMode: DtMode = DtMode.Fixed;
+  FixedTimeStep: number = 1/60;
+  _FrameCount: number = 0;
 
   constructor()
   {
+    Engine.Instance = this;
+
     this.Space = new Space(this);
     this.PhysicsSystem = new PhysicsSystem(this);
     this.GraphicsSystem = new GraphicsSystem(this);
@@ -38,16 +54,27 @@ export default class Engine
     IM = this.InputMaster;
   }
   
+  static get FrameCount() { return Engine.Instance._FrameCount; }
+  static get FrameCountStr() { return ("        " + this.FrameCount).slice(-8); }
   // Gets the next unique ID number
   static NextId(): number { return Engine.IdCounter++; }
   
   Update(dt: number)
   {
+    if (this.DtMode === DtMode.Fixed)
+      dt = this.FixedTimeStep;
+
     if (IM.Mode === ImMode.Replay)
       IM.CopyFromHistory();
 
     if (IM.Down(Key.Control) && IM.Pressed(Key.D))
       this.Space.ToggleDebugDraw();
+    
+    if (IM.Down(Key.Control) && IM.Pressed(Key.R))
+      this.Space.Reload();
+    
+    if (IM.Down(Key.Control) && IM.Down(Key.Shift) && IM.Pressed(Key.B))
+      this.Break();
 
     // Update the behavior of the game's components
     this.Space.LogicUpdate(dt);
@@ -65,6 +92,13 @@ export default class Engine
 
     // Update the key arrays in the InputMaster
     IM.Update();
+
+    ++this._FrameCount;
+  }
+
+  Break()
+  {
+    G.noLoop();
   }
 }
 
@@ -77,6 +111,8 @@ export class Space
   Engine: Engine;
   // The array of all the objects in the space
   List: Cog[] = [];
+  // The last scene loaded
+  CurrentScene: Scene = null;
   // Whether debug drawing should be performed
   UseDebugDraw: boolean = false;
   
@@ -113,12 +149,23 @@ export class Space
     // Clears everything first and then adds the new objects
     this.Clear();
     this.LoadAdditively(scene);
+
+    this.CurrentScene = scene;
   }
   
   // Loads a scene, adding its Cogs to the ones already there
   LoadAdditively(scene: Scene)
   {
     scene.Load(this);
+    
+    if (this.CurrentScene == null)
+      this.CurrentScene = scene;
+  }
+
+  Reload()
+  {
+    if (this.CurrentScene != null)
+      this.Load(this.CurrentScene);
   }
   
   // Finds the Cog that has the given Id (if any)
@@ -161,6 +208,9 @@ export class Space
   // Updates all the Cogs' components' behaviors
   LogicUpdate(dt: number)
   {
+    if (IM.Pressed(Key.M))
+      G.print(this.List);
+
     for (const cog of this.List)
       cog.LogicUpdate(dt);
   }
@@ -195,6 +245,37 @@ export class Space
     }
     
     this.List = notDestroyedList;
+  }
+
+  DebugRect(position: P5.Vector, w: number, h: number,
+    fill: P5.Color = G.color(255, 100), stroke: P5.Color = G.color(255),
+    useStroke: boolean = true, useFill: boolean = true, strokeWeight: number = 1)
+  {
+    if (!this.UseDebugDraw)
+      return;
+
+    let rect = new DebugRect(position, w, h,
+      fill, stroke, useStroke, useFill, strokeWeight);
+    this.GraphicsSystem.AddDebugShape(rect);
+  }
+
+  DebugLine(start: P5.Vector, end: P5.Vector,
+    color: P5.Color = G.color(255), thickness: number = 1)
+  {
+    if (!this.UseDebugDraw)
+      return;
+
+    let line = new DebugLine(start, end, color, thickness);
+    this.GraphicsSystem.AddDebugShape(line);
+  }
+
+  DebugPoint(position: P5.Vector, color: P5.Color = G.color(255), radius: number = 1)
+  {
+    if (!this.UseDebugDraw)
+      return;
+
+    let point = new DebugPoint(position, color, radius);
+    this.GraphicsSystem.AddDebugShape(point);
   }
 }
 
@@ -343,7 +424,7 @@ export class PhysicsSystem
   }
   
   // Returns true if the two AabbColliders are touching, false otherwise
-  AabbVsAabb(a: AabbCollider, b: AabbCollider, aVel = null, bVel = null): boolean
+  AabbVsAabb(a: AabbCollider, b: AabbCollider, aVel: P5.Vector = null, bVel: P5.Vector = null): boolean
   {
     // let contact = new Contact();
     
@@ -415,6 +496,8 @@ export class GraphicsSystem
   // The map of all the Graphical components present
   Graphicals: Map<number, Graphical[]> = new Map<number, Graphical[]>();
 
+  DebugShapes: DebugShape[] = [];
+
   constructor(engine: Engine)
   {
     this.Engine = engine;
@@ -450,6 +533,11 @@ export class GraphicsSystem
       }
     }
   }
+
+  AddDebugShape(shape: DebugShape)
+  {
+    this.DebugShapes.push(shape);
+  }
   
   // Asks each Graphical to render itself
   Render()
@@ -461,12 +549,16 @@ export class GraphicsSystem
     {
       let layerArray = allGraphicals[i][1];
       
-      for (let j = 0; j < layerArray.length; ++j)
+      for (const graphical of layerArray)
       {
-        let graphical = layerArray[j];
         graphical.Render();
       }
     }
+
+    for (const debugShape of this.DebugShapes)
+      debugShape.Render();
+
+    this.DebugShapes = [];
   }
 }
 
@@ -490,7 +582,7 @@ class GraphicsLayer
   Graphicals: Graphical[] = [];
   SortFunction: (a: Graphical, b: Graphical) => number = null;
   
-  Add(graphical)
+  Add(graphical: Graphical)
   {
     this.Graphicals.push(graphical);
     
@@ -498,7 +590,7 @@ class GraphicsLayer
       this.Graphicals.sort(this.SortFunction);
   }
   
-  Remove(graphical)
+  Remove(graphical: Graphical)
   {
     if (this.SortFunction == null)
     {

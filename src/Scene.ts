@@ -1,7 +1,8 @@
 import P5 from "p5"
 import { G } from "./main"
 import { AabbCollider, BasicMover, Body, Rect, Tx } from "./Cog";
-import { Tile, TileMap, TileMapCollider } from "./TileMap";
+import { Tile, TileMap } from "./TileMap";
+import { HotspotCollider } from "./HotspotCollider"
 import { Space } from "./Engine"
 
 
@@ -44,23 +45,27 @@ export class TestScene extends Scene
     hero.Add(tx);
 
     let rect = new Rect();
-    rect.Fill = G.color(200, 200, 50);
+    rect.Fill = G.color(200, 200, 50, 80);
+    rect.Stroke = G.color(150, 150, 35, 200);
+    rect.UseStroke = true;
+    rect.UseFill = false;
+    rect.StrokeWeight = 1/16;
     rect.Layer = 1;
     hero.Add(rect);
 
     let basicMover = new BasicMover()
     let aabbCollider = new AabbCollider();
     let body = new Body();
-    basicMover.Speed = 4;
+    basicMover.Speed = 8;
     aabbCollider.Dynamic = true;
     body.Gravity = G.createVector(0, 0);
     body.Velocity = G.createVector(0, 0);
-    let tileMapCollider = new TileMapCollider();
+    let hotspotCollider = new HotspotCollider();
 
     hero.Add(basicMover);
     hero.Add(aabbCollider);
     hero.Add(body);
-    hero.Add(tileMapCollider);
+    hero.Add(hotspotCollider);
 
     hero.Initialize();
   }
@@ -187,24 +192,36 @@ export class TestScene extends Scene
 
     let tx = new Tx();
     tileMapCog.Add(tx);
+    // let basicMover = new BasicMover();
+    // tileMapCog.Add(basicMover);
     let tileMap = new TileMap();
     tileMapCog.Add(tileMap);
 
-    let block = new Tile(true, G.color(100, 110, 115));
+    let emptyBlock = new Tile(0, 0, false, G.color(115, 110, 100, 50));
+    let solidBlock = new Tile(0, 0, true, G.color(100, 110, 115));
 
     let indexArray =
     [
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,],
-      [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1,],
-      [1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,],
-      [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,],
-      [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,],
-      [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,],
-      [1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,],
-      [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,],
-      [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,],
+      // [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,],
+      // [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1,],
+      // [1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,],
+      // [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1,],
+      // [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,],
+      // [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,],
+      // [1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,],
+      // [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,],
+      // [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
+      [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1],
+      [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1],
+      [1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1],
+      [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1],
+      [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     ];
-    let legend: Tile[] = [undefined, block];
+    let legend: Tile[] = [emptyBlock, solidBlock];
     tileMap.ReadArray(indexArray, legend);
     tileMap.Offset = G.createVector(0.5, 0.5);
     tileMap.Solid = true;

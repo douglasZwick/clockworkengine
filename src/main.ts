@@ -56,3 +56,7 @@ const sketch = (p5: P5) =>
 }
 
 new P5(sketch)
+
+
+// OVERALL TODO:
+//   - If things are suspiciously slow, maybe I need to override P5.Vector.prototype.copy

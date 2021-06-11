@@ -205,7 +205,7 @@ export class Cog extends CountedObject
 //   atomic nugget of gameplay goodness
 export class Component extends CountedObject
 {
-  Name: string = "Component";
+  Name: string;
   // Doesn't inherently do anything, but derived classes can use it
   Active: boolean = true;
   // See comments on the corresponding flag on Cog
@@ -216,6 +216,8 @@ export class Component extends CountedObject
   constructor()
   {
     super();
+
+    this.Name = this.constructor.name;
   }
   
   // The ComponentType identifies this Component's type
@@ -264,7 +266,7 @@ export class Component extends CountedObject
 //   position, rotation, and scale in space
 export class Tx extends Component
 {
-  Position: P5.Vector = G.createVector();
+  _Position: P5.Vector = G.createVector();
   Rotation: number = 0;
   Scale: P5.Vector = G.createVector();
 
@@ -272,29 +274,22 @@ export class Tx extends Component
   {
     super();
 
-    this.Name = "Tx";
+    this.Name = this.constructor.name;
   }
 
-  get X() { return this.Position.x; }
-  get Y() { return this.Position.y; }
-
-  set X(x)
-  {
-    let pos = this.Position;
-    pos.x = x;
-    this.Position = pos;
-  }
-
-  set Y(y)
-  {
-    let pos = this.Position;
-    pos.y = y;
-    this.Position = pos;
-  }
+  // Access _Position by copy
+  get Position() { return this._Position.copy(); }
+  get X() { return this._Position.x; }
+  get Y() { return this._Position.y; }
+  
+  // Access _Position by copy
+  set Position(pos) { this._Position = pos.copy(); }
+  set X(x) { this._Position.x = x; }
+  set Y(y) { this._Position.y = y; }
 
   Add(vec: P5.Vector): P5.Vector
   {
-    return this.Position.add(vec);
+    return this._Position.add(vec);
   }
 
   AddX(x: number)
@@ -315,14 +310,19 @@ export class Graphical extends Component
   // Which graphical layer should this use?
   Layer: number = 0;
   // Offset vector, applied to the Tx position before drawing
-  Offset: P5.Vector = G.createVector();
+  _Offset: P5.Vector = G.createVector();
 
   constructor()
   {
     super();
 
-    this.Name = "Graphical";
+    this.Name = this.constructor.name;
   }
+
+  // Access _Offset by copy
+  get Offset() { return this._Offset.copy(); }
+  // Access _Offset by copy
+  set Offset(offset) { this._Offset = offset.copy(); }
 
   // Add this Graphical to the GraphicsSystem
   Initialize()
@@ -362,7 +362,7 @@ export class PrimitiveShape extends Graphical
   {
     super();
 
-    this.Name = "PrimitiveShape";
+    this.Name = this.constructor.name;
   }
 }
 
@@ -377,7 +377,7 @@ export class Point extends PrimitiveShape
   {
     super();
 
-    this.Name = "Point";
+    this.Name = this.constructor.name;
   }
 
   // Convenience accessors
@@ -394,8 +394,8 @@ export class Point extends PrimitiveShape
 
     G.stroke(this.Stroke);       // Points are drawn with stroke color
     G.strokeWeight(this.Diameter * Engine.Meter);
-    let x = (this.X + this.Offset.x) * Engine.Meter;
-    let y = (this.Y + this.Offset.y) * Engine.Meter;
+    let x = (this.X + this._Offset.x) * Engine.Meter;
+    let y = (this.Y + this._Offset.y) * Engine.Meter;
     G.point(x, y);
 
     G.pop();
@@ -415,7 +415,7 @@ export class Rect extends PrimitiveShape
   {
     super();
 
-    this.Name = "Rect";
+    this.Name = this.constructor.name;
   }
 
   Render()
@@ -440,8 +440,8 @@ export class Rect extends PrimitiveShape
     }
 
     G.rectMode(G.CENTER);
-    let x = (this.X + this.Offset.x) * Engine.Meter;
-    let y = (this.Y + this.Offset.y) * Engine.Meter;
+    let x = (this.X + this._Offset.x) * Engine.Meter;
+    let y = (this.Y + this._Offset.y) * Engine.Meter;
     let w = (this.W) * Engine.Meter;
     let h = (this.H) * Engine.Meter;
     G.rect(x, y, w, h);
@@ -458,7 +458,7 @@ export class Collider extends Component
   // Colliders are either dynamic or static
   _Dynamic: boolean = false;
   // Applied to Tx position before collision checks
-  Offset: P5.Vector = G.createVector();
+  _Offset: P5.Vector = G.createVector();
   // List of all contacts this Collider currently has with other Colliders
   Contacts: Contact[] = [];
 
@@ -466,7 +466,7 @@ export class Collider extends Component
   {
     super();
 
-    this.Name = "Collider";
+    this.Name = this.constructor.name;
   }
 
   // Interface for changing whether something is
@@ -488,6 +488,11 @@ export class Collider extends Component
       this._Dynamic = dynamic;
     }
   }
+
+  // Access _Offset by copy
+  get Offset() { return this._Offset.copy(); }
+  // Access _Offset by copy
+  set Offset(offset) { this._Offset = offset.copy(); }
 
   // Adds this Collider to the PhysicsSystem
   Initialize()
@@ -553,30 +558,39 @@ export class AabbCollider extends Collider
   {
     super();
 
-    this.Name = "AabbCollider";
+    this.Name = this.constructor.name;
   }
 
   // Getters for this Collider's extents in the world
-  get Left() { return this.Tx.X + this.Offset.x - this.W / 2; }
-  get Right() { return this.Tx.X + this.Offset.x + this.W / 2; }
-  get Top() { return this.Tx.Y + this.Offset.y - this.H / 2; }
-  get Bottom() { return this.Tx.Y + this.Offset.y + this.H / 2; }
+  get Left() { return this.Tx.X + this._Offset.x - this.W / 2; }
+  get Right() { return this.Tx.X + this._Offset.x + this.W / 2; }
+  get Top() { return this.Tx.Y + this._Offset.y - this.H / 2; }
+  get Bottom() { return this.Tx.Y + this._Offset.y + this.H / 2; }
 }
 
 
 // Moves its Cog around in space using velocity
 export class Body extends Component
 {
-  Velocity: P5.Vector = G.createVector();
+  _Velocity: P5.Vector = G.createVector();
   AngularVelocity: number = 0;
-  Gravity: P5.Vector = G.createVector(0, 9.81);
+  _Gravity: P5.Vector = G.createVector(0, 9.81);
 
   constructor()
   {
     super();
 
-    this.Name = "Body";
+    this.Name = this.constructor.name;
   }
+
+  // Access _Velocity by copy
+  get Velocity() { return this._Velocity.copy(); }
+  // Access _Velocity by copy
+  set Velocity(vel) { this._Velocity = vel.copy(); }
+  // Access _Gravity by copy
+  get Gravity() { return this._Gravity.copy(); }
+  // Access _Gravity by copy
+  set Gravity(gravity) { this._Gravity = gravity.copy(); }
 
   // Adds this Body to the PhysicsSystem
   Initialize()
@@ -588,12 +602,12 @@ export class Body extends Component
   PhysicsUpdate(dt: number)
   {
     // Applies this Body's velocity to its Transform's position
-    let dPos = P5.Vector.mult(this.Velocity, dt);
+    let dPos = P5.Vector.mult(this._Velocity, dt);
     this.Tx.Add(dPos);
 
     // Applies this Body's gravity to its velocity
-    let dVel = P5.Vector.mult(this.Gravity, dt);
-    this.Velocity.add(dVel);
+    let dVel = P5.Vector.mult(this._Gravity, dt);
+    this._Velocity.add(dVel);
   }
 
   // Removes this Body from the PhysicsSystem.
@@ -610,12 +624,18 @@ export class BasicMover extends Component
 {
   // How fast to go in meters per second
   Speed: number = 8;
+  Rect: Rect;
 
   constructor()
   {
     super();
 
-    this.Name = "BasicMover";
+    this.Name = this.constructor.name;
+  }
+
+  Initialize()
+  {
+    this.Rect = this.Owner.Get("Rect") as Rect;
   }
 
   LogicUpdate(dt: number)
@@ -633,9 +653,17 @@ export class BasicMover extends Component
     if (IM.Down(Key.Down))
       movement.y += 1;
 
+    if (IM.Pressed(Key.Space))
+      this.ToggleVisibility();
+
     movement.normalize().mult(this.Speed * dt);
 
     this.Tx.Add(movement);
+  }
+
+  ToggleVisibility()
+  {
+    this.Rect.Active = !this.Rect.Active;
   }
 }
 
