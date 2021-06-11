@@ -1,4 +1,4 @@
-import { Component } from "./Cog";
+import Component from "./Component";
 import { TileMap } from "./TileMap";
 
 

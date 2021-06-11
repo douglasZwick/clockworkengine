@@ -1,6 +1,6 @@
 import P5 from "p5"
 import { G } from "./main"
-import { Graphical } from "./Cog"
+import Graphical from "./Graphical"
 import Engine from "./Engine";
 
 

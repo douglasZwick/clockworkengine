@@ -1,5 +1,6 @@
 import P5 from "p5"
-import { Component, Tx } from "./Cog";
+import Tx from "./Tx";
+import Component from "./Component";
 import Engine from "./Engine";
 import { G } from "./main";
 import { Tile, TileMap } from "./TileMap";

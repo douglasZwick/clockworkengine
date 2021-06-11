@@ -1,10 +1,11 @@
-import P5 from "p5"
 import { G } from "./main"
-import { AabbCollider, BasicMover, Body, Rect, Tx } from "./Cog";
+import Tx from "./Tx"
+import { AabbCollider, Body, Rect } from "./Cog";
 import { Tile, TileMap } from "./TileMap";
 import HotspotCollider from "./HotspotCollider"
-import { Space } from "./Engine"
+import Space from "./Space"
 import TileMapCollider from "./TileMapCollider";
+import BasicMover from "./BasicMover";
 
 
 export class Scene
@@ -57,7 +58,7 @@ export class TestScene extends Scene
     let basicMover = new BasicMover()
     let aabbCollider = new AabbCollider();
     let body = new Body();
-    basicMover.Speed = 8;
+    basicMover.Speed = 10;
     aabbCollider.Dynamic = true;
     body.Gravity = G.createVector(0, 0);
     body.Velocity = G.createVector(0, 0);
@@ -193,8 +194,6 @@ export class TestScene extends Scene
 
     let tx = new Tx();
     tileMapCog.Add(tx);
-    // let basicMover = new BasicMover();
-    // tileMapCog.Add(basicMover);
     let tileMap = new TileMap();
     tileMapCog.Add(tileMap);
 

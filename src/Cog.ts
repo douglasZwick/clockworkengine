@@ -1,20 +1,13 @@
 import P5 from "p5"
 import { G } from "./main"
-import Engine, { Space, Collision, IM } from "./Engine"
+import Engine, { IM } from "./Engine"
+import { Collision } from "./PhysicsSystem"
 import { Key } from "./InputMaster"
-
-// A CountedObject is anything with a unique Id
-class CountedObject
-{
-  Id: number;
-
-  constructor()
-  {
-    // By getting the engine's NextId,
-    //   this object's Id is always unique
-    this.Id = Engine.NextId();
-  }
-}
+import Space from "./Space";
+import CountedObject from "./CountedObject"
+import Component from "./Component"
+import Graphical from "./Graphical"
+import Tx from "./Tx"
 
 
 // Cog is "GOC" backwards, which is Game Object Composition.
@@ -197,149 +190,6 @@ export class Cog extends CountedObject
   {
     for (const component of this.Components)
       component.CleanUp();
-  }
-}
-
-
-// Base Component class. Highly flexible and adaptable
-//   atomic nugget of gameplay goodness
-export class Component extends CountedObject
-{
-  Name: string;
-  // Doesn't inherently do anything, but derived classes can use it
-  Active: boolean = true;
-  // See comments on the corresponding flag on Cog
-  Initialized: boolean = false;
-  // The Cog that has this Component attached to it
-  Owner: Cog = null;
-  
-  constructor()
-  {
-    super();
-
-    this.Name = this.constructor.name;
-  }
-  
-  // The ComponentType identifies this Component's type
-  get ComponentType() { return this.constructor.name; }
-  // The Space that this Component's Owner belongs to
-  get Space() { return this.Owner.Space; }
-
-  // All Components have getters for their Owner's Tx
-  get Tx() { return this.Owner.Tx; }
-  get X() { return this.Tx.X; }
-  get Y() { return this.Tx.Y; }
-
-  // Returns a useful string representation of this Component
-  toString(): string
-  {
-    return `[Component|${this.ComponentType} ${this.Name}|${this.Id}]`;
-  }
-
-  // These can all be overridden to do whatever!
-
-  // In a Component derived class:
-  //   Any startup code should go in here
-  Initialize() { this.Initialized = true; }
-  //   Most ordinary gameplay behavior should go in here
-  LogicUpdate(dt: number) { }
-  //   Mostly just for Body
-  PhysicsUpdate(dt: number) { }
-  //   Useful for anything that should happen after physics
-  LateUpdate(dt: number) { }
-  //   How this component should be graphically represented for debugging
-  DebugDraw() { }
-  //   Add whatever you want to happen when this Cog begins touching something
-  CollisionStarted(collision: Collision) { }
-  //   Add whatever you want to happen when an ongoing collision continues
-  CollisionPersisted(collision: Collision) { }
-  //   Add whatever should happen when a previous collision ends
-  CollisionEnded(collision: Collision) { }
-  //   Gameplay Code that should run when this Cog is about to be destroyed
-  Destroyed() { }
-  //   Cleanup code (memory, references, etc) for when this Cog is being pruned
-  CleanUp() { }
-}
-
-
-// Short for "Transform". Keeps track of this Cog's
-//   position, rotation, and scale in space
-export class Tx extends Component
-{
-  _Position: P5.Vector = G.createVector();
-  Rotation: number = 0;
-  Scale: P5.Vector = G.createVector();
-
-  constructor()
-  {
-    super();
-
-    this.Name = this.constructor.name;
-  }
-
-  // Access _Position by copy
-  get Position() { return this._Position.copy(); }
-  get X() { return this._Position.x; }
-  get Y() { return this._Position.y; }
-  
-  // Access _Position by copy
-  set Position(pos) { this._Position = pos.copy(); }
-  set X(x) { this._Position.x = x; }
-  set Y(y) { this._Position.y = y; }
-
-  Add(vec: P5.Vector): P5.Vector
-  {
-    return this._Position.add(vec);
-  }
-
-  AddX(x: number)
-  {
-    this.X += x;
-  }
-
-  AddY(y: number)
-  {
-    this.Y += y;
-  }
-}
-
-
-// Base Graphical class. Stuff you can see
-export class Graphical extends Component
-{
-  // Which graphical layer should this use?
-  Layer: number = 0;
-  // Offset vector, applied to the Tx position before drawing
-  _Offset: P5.Vector = G.createVector();
-
-  constructor()
-  {
-    super();
-
-    this.Name = this.constructor.name;
-  }
-
-  // Access _Offset by copy
-  get Offset() { return this._Offset.copy(); }
-  // Access _Offset by copy
-  set Offset(offset) { this._Offset = offset.copy(); }
-
-  // Add this Graphical to the GraphicsSystem
-  Initialize()
-  {
-    super.Initialize();
-
-    this.Space.GraphicsSystem.Add(this);
-  }
-
-  // Override this to draw this Graphical with p5 calls
-  Render() { }
-
-  // Remove this Graphical from the GraphicsSystem.
-  //   Important to do this before we lose access to this Component!
-  CleanUp()
-  {
-    this.Space.GraphicsSystem.Remove(this);
   }
 }
 
@@ -615,55 +465,6 @@ export class Body extends Component
   CleanUp()
   {
     this.Space.PhysicsSystem.RemoveBody(this);
-  }
-}
-
-
-// Super simple test component for all-direction keyboard movement
-export class BasicMover extends Component
-{
-  // How fast to go in meters per second
-  Speed: number = 8;
-  Rect: Rect;
-
-  constructor()
-  {
-    super();
-
-    this.Name = this.constructor.name;
-  }
-
-  Initialize()
-  {
-    this.Rect = this.Owner.Get("Rect") as Rect;
-  }
-
-  LogicUpdate(dt: number)
-  {
-    if (!this.Active) return; // Don't do anything if inactive
-
-    let movement = G.createVector();
-
-    if (IM.Down(Key.Right))
-      movement.x += 1;
-    if (IM.Down(Key.Left))
-      movement.x -= 1;
-    if (IM.Down(Key.Up))
-      movement.y -= 1;
-    if (IM.Down(Key.Down))
-      movement.y += 1;
-
-    if (IM.Pressed(Key.Space))
-      this.ToggleVisibility();
-
-    movement.normalize().mult(this.Speed * dt);
-
-    this.Tx.Add(movement);
-  }
-
-  ToggleVisibility()
-  {
-    this.Rect.Active = !this.Rect.Active;
   }
 }
 
