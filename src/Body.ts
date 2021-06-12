@@ -8,7 +8,7 @@ export default class Body extends Component
 {
   _Velocity: P5.Vector = G.createVector();
   AngularVelocity: number = 0;
-  _Gravity: P5.Vector = G.createVector(0, 9.81);
+  GravityScale: number = 1;
 
   constructor()
   {
@@ -21,10 +21,6 @@ export default class Body extends Component
   get Velocity() { return this._Velocity.copy(); }
   // Access _Velocity by copy
   set Velocity(vel) { this._Velocity = vel.copy(); }
-  // Access _Gravity by copy
-  get Gravity() { return this._Gravity.copy(); }
-  // Access _Gravity by copy
-  set Gravity(gravity) { this._Gravity = gravity.copy(); }
 
   // Adds this Body to the PhysicsSystem
   Initialize()
@@ -40,7 +36,7 @@ export default class Body extends Component
     this.Tx.Add(dPos);
 
     // Applies this Body's gravity to its velocity
-    let dVel = P5.Vector.mult(this._Gravity, dt);
+    let dVel = P5.Vector.mult(this.Space.PhysicsSystem._Gravity, this.GravityScale * dt);
     this._Velocity.add(dVel);
   }
 

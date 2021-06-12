@@ -5,6 +5,7 @@ import HotspotCollider from "./HotspotCollider";
 import { TileMap } from "./TileMap";
 import TileMapCollider from "./TileMapCollider";
 import Body from "./Body"
+import { G } from "./main";
 
 
 // Updates all the Bodies to apply their velocities
@@ -26,11 +27,18 @@ export default class PhysicsSystem
   // The array of any HotspotColliders that are present
   HotspotColliderList: HotspotCollider[] = [];
 
+  _Gravity: P5.Vector = G.createVector(0, 9.81);
+
   constructor(engine: Engine)
   {
     this.Engine = engine;
   }
-  
+
+  // Access _Gravity by copy
+  get Gravity() { return this._Gravity.copy(); }
+  // Access _Gravity by copy
+  set Gravity(gravity) { this._Gravity = gravity.copy(); }
+
   // Adds the given Collider to whichever list it belongs in
   AddCollider(collider: Collider)
   {

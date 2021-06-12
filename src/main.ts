@@ -13,13 +13,13 @@ export var G: P5;
 
 const sketch = (p5: P5) =>
 {
+  G = p5;
+
   const engine = new Engine();
 
   p5.setup = function()
   {
     p5.createCanvas(canvasW, canvasH);
-
-    G = p5;
 
     let testScene = new TestScene();
     engine.Space.Load(testScene);

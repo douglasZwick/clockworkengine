@@ -17,6 +17,7 @@ export default class BasicPlatformerController extends Component
   FootIndexB: number = 7;
   PrevHeadContact: boolean = false;
   PrevFootContact: boolean = false;
+  Flipped: boolean = false;
 
   constructor()
   {
@@ -58,16 +59,21 @@ export default class BasicPlatformerController extends Component
 
     if (IM.Pressed(Key.S))
       this.AttemptJump();
+    
+    if (IM.Pressed(Key.D))
+      this.Flip();
   }
 
   LateUpdate(dt: number)
   {
     let headContact = this.HeadContact;
     let footContact = this.FootContact;
+    let yVel = this.Body._Velocity.y;
+    let gravityAlignment = yVel * this.Body.GravityScale * this.Space.PhysicsSystem._Gravity.y;
 
     if (footContact)
     {
-      if (this.Body._Velocity.y > 0)
+      if (gravityAlignment > 0)
         this.Body._Velocity.y = 0;
 
       if (!this.PrevFootContact)
@@ -76,7 +82,7 @@ export default class BasicPlatformerController extends Component
 
     if (headContact)
     {
-      if (this.Body._Velocity.y < 0)
+      if (gravityAlignment < 0)
         this.Body._Velocity.y = 0;
 
       if (!this.PrevHeadContact)
@@ -106,5 +112,18 @@ export default class BasicPlatformerController extends Component
   Bonk()
   {
 
+  }
+
+  Flip()
+  {
+    let temp = this.HeadIndexA;
+    this.HeadIndexA = this.FootIndexA;
+    this.FootIndexA = temp;
+    temp = this.HeadIndexB;
+    this.HeadIndexB = this.FootIndexB;
+    this.FootIndexB = temp;
+    this.Flipped = !this.Flipped;
+    this.JumpSpeed *= -1;
+    this.Body.GravityScale *= -1;
   }
 }

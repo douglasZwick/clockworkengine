@@ -37,6 +37,8 @@ export class TestScene extends Scene
 
     this.Hero(5, 6);
     this.CreateTileMap();
+
+    space.PhysicsSystem.Gravity = G.createVector(0, 30);
   }
 
   Hero(x: number, y: number)
@@ -66,7 +68,6 @@ export class TestScene extends Scene
     // basicMover.Speed = 8;
     basicPlatformerController.JumpSpeed = -13.5;
     aabbCollider.Dynamic = true;
-    body.Gravity = G.createVector(0, 30);
     body.Velocity = G.createVector(0, 0);
     let hotspotCollider = new HotspotCollider();
     hotspotCollider.W = rect.W;
@@ -107,7 +108,6 @@ export class TestScene extends Scene
     let body = new Body();
     basicMover.Speed = 4;
     aabbCollider.Dynamic = true;
-    body.Gravity = G.createVector(0, 0);
     body.Velocity = G.createVector(0, 0);
 
     hero.Add(basicMover);
