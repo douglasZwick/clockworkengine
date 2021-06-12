@@ -7,6 +7,7 @@ import Space from "./Space"
 import TileMapCollider from "./TileMapCollider";
 import BasicMover from "./BasicMover";
 import Body from "./Body"
+import BasicPlatformerController from "./BasicPlatformerController";
 
 
 export class Scene
@@ -53,19 +54,27 @@ export class TestScene extends Scene
     rect.UseStroke = true;
     rect.UseFill = false;
     rect.StrokeWeight = 1/16;
+    rect.W = 3/4;
+    rect.H = 1;
     rect.Layer = 1;
     hero.Add(rect);
 
-    let basicMover = new BasicMover()
+    // let basicMover = new BasicMover();
+    let basicPlatformerController = new BasicPlatformerController();
     let aabbCollider = new AabbCollider();
     let body = new Body();
-    basicMover.Speed = 10;
+    // basicMover.Speed = 8;
+    basicPlatformerController.JumpSpeed = -13.5;
     aabbCollider.Dynamic = true;
-    body.Gravity = G.createVector(0, 0);
+    body.Gravity = G.createVector(0, 30);
     body.Velocity = G.createVector(0, 0);
     let hotspotCollider = new HotspotCollider();
+    hotspotCollider.W = rect.W;
+    hotspotCollider.H = rect.H;
+    // hotspotCollider.CornerThickness = 1/6;
 
-    hero.Add(basicMover);
+    // hero.Add(basicMover);
+    hero.Add(basicPlatformerController);
     hero.Add(aabbCollider);
     hero.Add(body);
     hero.Add(hotspotCollider);
@@ -212,15 +221,19 @@ export class TestScene extends Scene
       // [1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,],
       // [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,],
       // [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
-      [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1],
-      [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1],
-      [1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1],
-      [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1],
-      [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
-      [1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+      [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1],
+      [1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+      [1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     ];
     let legend: Tile[] = [emptyBlock, solidBlock];
     tileMap.ReadArray(indexArray, legend);

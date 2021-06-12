@@ -61,6 +61,8 @@ export class Cog extends CountedObject
 
   // Finds and returns the first attached Component
   //   of the given type, if any
+  // TODO:
+  //   Rewrite this function to use generics, I think they're called?
   Get(componentType: string): Component
   {
     for (const component of this.Components)

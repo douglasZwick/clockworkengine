@@ -9,7 +9,7 @@ import { Tile, TileMap } from "./TileMap";
 export default class HotspotCollider extends Component
 {
   // How far from the corner each hotspot should be
-  CornerThickness: number = 1 / 4;
+  CornerThickness: number = 1/4;
   // Width of this object
   W: number = 1;
   // Height of this object
@@ -18,6 +18,8 @@ export default class HotspotCollider extends Component
   Padding: number = 0;
   // The hotspots to use to check the tiles for solidity
   Hotspots: TileMapHotspot[] = [];
+
+  HotspotsTriggered: boolean[] = [];
 
   constructor()
   {
@@ -56,6 +58,9 @@ export default class HotspotCollider extends Component
     this.Hotspots[6] = new TileMapHotspot(G.createVector(-x, h));
     this.Hotspots[7] = new TileMapHotspot(G.createVector(x, h));
 
+    this.HotspotsTriggered.length = this.Hotspots.length;
+    this.HotspotsTriggered.fill(false);
+
     this.Space.PhysicsSystem.AddHotspotCollider(this);
   }
 
@@ -69,9 +74,12 @@ export default class HotspotCollider extends Component
     hotspot = this.Hotspots[1];
     tileB = hotspot.Check(this.Tx, tileMap);
 
-    if (tileA != undefined && tileA.Solid)
+    this.HotspotsTriggered[0] = tileA != undefined && tileA.Solid;
+    this.HotspotsTriggered[1] = tileB != undefined && tileB.Solid;
+
+    if (this.HotspotsTriggered[0])
       solidTile = tileA;
-    else if (tileB != undefined && tileB.Solid)
+    else if (this.HotspotsTriggered[1])
       solidTile = tileB;
 
     if (solidTile != undefined)
@@ -84,9 +92,12 @@ export default class HotspotCollider extends Component
     hotspot = this.Hotspots[3];
     tileB = hotspot.Check(this.Tx, tileMap);
 
-    if (tileA != undefined && tileA.Solid)
+    this.HotspotsTriggered[2] = tileA != undefined && tileA.Solid;
+    this.HotspotsTriggered[3] = tileB != undefined && tileB.Solid;
+
+    if (this.HotspotsTriggered[2])
       solidTile = tileA;
-    else if (tileB != undefined && tileB.Solid)
+    else if (this.HotspotsTriggered[3])
       solidTile = tileB;
 
     if (solidTile != undefined)
@@ -98,15 +109,18 @@ export default class HotspotCollider extends Component
     tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[5];
     tileB = hotspot.Check(this.Tx, tileMap);
+    
+    this.HotspotsTriggered[4] = tileA != undefined && tileA.Solid;
+    this.HotspotsTriggered[5] = tileB != undefined && tileB.Solid;
 
-    if (tileA != undefined && tileA.Solid)
+    if (this.HotspotsTriggered[4])
       solidTile = tileA;
-    else if (tileB != undefined && tileB.Solid)
+    else if (this.HotspotsTriggered[5])
       solidTile = tileB;
 
     if (solidTile != undefined)
       this.SnapR(tileMap.GetTileWorldRightFromIndex(solidTile.X));
-    
+
     solidTile = undefined;
 
     hotspot = this.Hotspots[6];
@@ -114,9 +128,12 @@ export default class HotspotCollider extends Component
     hotspot = this.Hotspots[7];
     tileB = hotspot.Check(this.Tx, tileMap);
 
-    if (tileA != undefined && tileA.Solid)
+    this.HotspotsTriggered[6] = tileA != undefined && tileA.Solid;
+    this.HotspotsTriggered[7] = tileB != undefined && tileB.Solid;
+
+    if (this.HotspotsTriggered[6])
       solidTile = tileA;
-    else if (tileB != undefined && tileB.Solid)
+    else if (this.HotspotsTriggered[7])
       solidTile = tileB;
 
     if (solidTile != undefined)
