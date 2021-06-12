@@ -30,23 +30,12 @@ export class TileMap extends Graphical
 {
   // The 2D container of the map itself
   Map: Map<number, Map<number, Tile>> = new Map<number, Map<number, Tile>>();
-  // Whether this TileMap should be considered by
-  //   TileMapCollider Components to be solid
-  Solid: boolean = false;
 
   constructor()
   {
     super();
 
     this.Name = this.constructor.name;
-  }
-
-  Initialize()
-  {
-    super.Initialize();
-
-    if (this.Solid)
-      this.Space.PhysicsSystem.AddSolidTileMap(this);
   }
 
   // Adds the given tile at the given X and Y coordinates
@@ -205,8 +194,5 @@ export class TileMap extends Graphical
     super.CleanUp();
 
     this.Map.clear();
-
-    if (this.Solid)
-      this.Space.PhysicsSystem.RemoveSolidTileMap(this);
   }
 }

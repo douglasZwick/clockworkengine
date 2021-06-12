@@ -25,9 +25,6 @@ export default class PhysicsSystem
   TileMapColliderList: TileMapCollider[] = [];
   // The array of any HotspotColliders that are present
   HotspotColliderList: HotspotCollider[] = [];
-  // The TileMap, if any, that should be considered by
-  //   TileMapCollider Components to be solid
-  SolidTileMap: TileMap = null;
 
   constructor(engine: Engine)
   {
@@ -124,17 +121,6 @@ export default class PhysicsSystem
         return;
       }
     }
-  }
-  
-  AddSolidTileMap(tileMap: TileMap)
-  {
-    this.SolidTileMap = tileMap;
-  }
-  
-  RemoveSolidTileMap(tileMap: TileMap)
-  {
-    if (this.SolidTileMap.Id === tileMap.Id)
-      this.SolidTileMap = null;
   }
   
   // Applies velocities, etc., then checks for collisions

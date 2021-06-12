@@ -238,7 +238,6 @@ export class TestScene extends Scene
     let legend: Tile[] = [emptyBlock, solidBlock];
     tileMap.ReadArray(indexArray, legend);
     tileMap.Offset = G.createVector(0.5, 0.5);
-    tileMap.Solid = true;
 
     let tileMapCollider = new TileMapCollider();
     tileMapCog.Add(tileMapCollider);
