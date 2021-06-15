@@ -75,7 +75,7 @@ export class TileMap extends Graphical
   {
     for (let y = 0; y < indexArray.length; ++y)
     {
-      let row = indexArray[y];
+      let row = indexArray[indexArray.length - 1 - y];
 
       for (let x = 0; x < row.length; ++x)
       {
@@ -113,8 +113,8 @@ export class TileMap extends Graphical
     let shiftedX = position.x - this._Offset.x - this.Tx.X + 0.5;
     let shiftedY = position.y - this._Offset.y - this.Tx.Y + 0.5;
     
-    let indexX = Math.floor(shiftedX);
-    let indexY = Math.floor(shiftedY);
+    let indexX = Math.ceil(shiftedX) - 1;
+    let indexY = Math.ceil(shiftedY) - 1;
     
     let tile = this.Get(indexX, indexY);
     
@@ -151,12 +151,12 @@ export class TileMap extends Graphical
 
   GetTileWorldTopFromIndex(y: number): number
   {
-    return this.Tx.Y + this._Offset.y + y - 0.5;
+    return this.Tx.Y + this._Offset.y + y + 0.5;
   }
   
   GetTileWorldBottomFromIndex(y: number): number
   {
-    return this.Tx.Y + this._Offset.y + y + 0.5;
+    return this.Tx.Y + this._Offset.y + y - 0.5;
   }
 
   Render()
@@ -178,10 +178,12 @@ export class TileMap extends Graphical
           G.push();
 
           G.fill(tile.Color);
+          G.noStroke();
           G.rectMode(G.CENTER);
-          let x = (this.X + this._Offset.x + columnIndex) * Engine.Meter;
-          let y = (this.Y + this._Offset.y + rowIndex) * Engine.Meter;
-          G.rect(x, y, Engine.Meter, Engine.Meter);
+          let x = columnIndex * Engine.Meter;
+          let y = rowIndex * Engine.Meter;
+          G.translate(x, y, 0);
+          G.rect(0, 0, Engine.Meter, Engine.Meter);
 
           G.pop();
         }

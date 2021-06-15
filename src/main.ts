@@ -20,6 +20,7 @@ const sketch = (p5: P5) =>
   p5.setup = function()
   {
     p5.createCanvas(canvasW, canvasH, p5.WEBGL);
+    // p5.createCanvas(canvasW, canvasH);
 
     let testScene = new TestScene();
     engine.Space.Load(testScene);

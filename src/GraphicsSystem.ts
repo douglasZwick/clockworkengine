@@ -1,6 +1,8 @@
+import P5 from "p5"
 import Graphical from "./Graphical";
 import { DebugShape } from "./DebugDraw";
 import Engine from "./Engine";
+import { G } from "./main"
 
 
 // Manages the drawing and ordering of all the Graphicals
@@ -57,6 +59,11 @@ export class GraphicsSystem
   // Asks each Graphical to render itself
   Render()
   {
+    G.push();
+    // So that positive Y is up and positive rotations are counter-clockwise
+    G.scale(1, -1, 1);
+    G.translate(-320, -180, 0);
+
     let allGraphicals = Array.from(this.Graphicals);
     allGraphicals.sort((a, b) => { return a[0] - b[0]; });
     
@@ -66,7 +73,18 @@ export class GraphicsSystem
       
       for (const graphical of layerArray)
       {
+        if (!graphical.Active) continue;
+
+        G.push();
+        let tx = graphical.Tx;
+        let translation = P5.Vector.add(tx._Position, graphical._Offset).mult(Engine.Meter);
+        let rotation = tx.Rotation;
+        let scale = tx._Scale;
+        G.translate(translation);
+        G.rotate(rotation);
+        G.scale(scale);
         graphical.Render();
+        G.pop();
       }
     }
 
@@ -74,6 +92,8 @@ export class GraphicsSystem
       debugShape.Render();
 
     this.DebugShapes = [];
+
+    G.pop();
   }
 }
 

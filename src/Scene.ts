@@ -38,7 +38,33 @@ export class TestScene extends Scene
     this.Hero(5, 6);
     this.CreateTileMap();
 
-    space.PhysicsSystem.Gravity = G.createVector(0, 30);
+    // let a = space.Create("A");
+    // let txA = new Tx();
+    // let rectA = new Rect();
+    // txA.X = 5;
+    // txA.Y = 3;
+    // txA.Rotation = G.radians(15);
+    // txA.ScaleX = 2;
+    // txA.ScaleY = 0.7;
+    // rectA.Fill = G.color(255, 255, 0, 100);
+    // rectA.Layer = 1;
+    // rectA.Offset = G.createVector(1, 0);
+    // a.Add(txA);
+    // a.Add(rectA);
+    // a.Initialize();
+
+    // let b = space.Create("B");
+    // let txB = new Tx();
+    // let rectB = new Rect();
+    // txB.Position = txA.Position;
+    // // txB.Scale = txA.Scale;
+    // rectB.Fill = G.color(0, 128, 255, 255);
+    // rectB.Layer = 0;
+    // b.Add(txB);
+    // b.Add(rectB);
+    // b.Initialize();
+
+    space.PhysicsSystem.Gravity = G.createVector(0, -30);
   }
 
   Hero(x: number, y: number)
@@ -66,7 +92,7 @@ export class TestScene extends Scene
     let aabbCollider = new AabbCollider();
     let body = new Body();
     // basicMover.Speed = 8;
-    basicPlatformerController.JumpSpeed = -13.5;
+    basicPlatformerController.JumpSpeed = 13.5;
     aabbCollider.Dynamic = true;
     body.Velocity = G.createVector(0, 0);
     let hotspotCollider = new HotspotCollider();
@@ -207,7 +233,7 @@ export class TestScene extends Scene
     let tileMap = new TileMap();
     tileMapCog.Add(tileMap);
 
-    let emptyBlock = new Tile(0, 0, false, G.color(115, 110, 100, 50));
+    let emptyBlock = new Tile(0, 0, false, G.color(115, 110, 100, 32));
     let solidBlock = new Tile(0, 0, true, G.color(100, 110, 115));
 
     let indexArray =
@@ -232,7 +258,6 @@ export class TestScene extends Scene
       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
       [1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       [1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     ];
     let legend: Tile[] = [emptyBlock, solidBlock];

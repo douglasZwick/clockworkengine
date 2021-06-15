@@ -30,8 +30,8 @@ export default class HotspotCollider extends Component
 
   get WorldLeft() { return this.Tx.X - (this.W / 2 - this.Padding); }
   get WorldRight() { return this.Tx.X + (this.W / 2 - this.Padding); }
-  get WorldTop() { return this.Tx.Y - (this.H / 2 - this.Padding); }
-  get WorldBottom() { return this.Tx.Y + (this.H / 2 - this.Padding); }
+  get WorldBottom() { return this.Tx.Y - (this.H / 2 - this.Padding); }
+  get WorldTop() { return this.Tx.Y + (this.H / 2 - this.Padding); }
 
   Initialize()
   {
@@ -42,21 +42,21 @@ export default class HotspotCollider extends Component
     let h = this.H / 2 - this.Padding;
     let x = w - this.CornerThickness;
     let y = h - this.CornerThickness;
-    //  --3-------2--
-    //  4     .     1
-    //  |     .     |
-    //  | . . + . . |
-    //  |     .     |
-    //  5     .     0
-    //  --6-------7--
-    this.Hotspots[0] = new TileMapHotspot(G.createVector(w, y));
-    this.Hotspots[1] = new TileMapHotspot(G.createVector(w, -y));
-    this.Hotspots[2] = new TileMapHotspot(G.createVector(x, -h));
-    this.Hotspots[3] = new TileMapHotspot(G.createVector(-x, -h));
-    this.Hotspots[4] = new TileMapHotspot(G.createVector(-w, -y));
-    this.Hotspots[5] = new TileMapHotspot(G.createVector(-w, y));
-    this.Hotspots[6] = new TileMapHotspot(G.createVector(-x, h));
-    this.Hotspots[7] = new TileMapHotspot(G.createVector(x, h));
+    //  --3---------2--
+    //  4      .      1
+    //  |      .      |
+    //  | . .  +  . . |
+    //  |      .      |
+    //  5      .      0
+    //  --6---------7--
+    this.Hotspots[0] = new TileMapHotspot(G.createVector( w, -y));
+    this.Hotspots[1] = new TileMapHotspot(G.createVector( w,  y));
+    this.Hotspots[2] = new TileMapHotspot(G.createVector( x,  h));
+    this.Hotspots[3] = new TileMapHotspot(G.createVector(-x,  h));
+    this.Hotspots[4] = new TileMapHotspot(G.createVector(-w,  y));
+    this.Hotspots[5] = new TileMapHotspot(G.createVector(-w, -y));
+    this.Hotspots[6] = new TileMapHotspot(G.createVector(-x, -h));
+    this.Hotspots[7] = new TileMapHotspot(G.createVector( x, -h));
 
     this.HotspotsTriggered.length = this.Hotspots.length;
     this.HotspotsTriggered.fill(false);
@@ -68,7 +68,8 @@ export default class HotspotCollider extends Component
   {
     let hotspot: TileMapHotspot;
     let tileA: Tile, tileB: Tile, solidTile: Tile;
-
+    
+    // Check the right!
     hotspot = this.Hotspots[0];
     tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[1];
@@ -87,6 +88,7 @@ export default class HotspotCollider extends Component
 
     solidTile = undefined;
 
+    // Check the top!
     hotspot = this.Hotspots[2];
     tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[3];
@@ -105,6 +107,7 @@ export default class HotspotCollider extends Component
 
     solidTile = undefined;
 
+    // Check the left!
     hotspot = this.Hotspots[4];
     tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[5];
@@ -123,6 +126,7 @@ export default class HotspotCollider extends Component
 
     solidTile = undefined;
 
+    // Check the bottom!
     hotspot = this.Hotspots[6];
     tileA = hotspot.Check(this.Tx, tileMap);
     hotspot = this.Hotspots[7];

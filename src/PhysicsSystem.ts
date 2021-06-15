@@ -27,7 +27,7 @@ export default class PhysicsSystem
   // The array of any HotspotColliders that are present
   HotspotColliderList: HotspotCollider[] = [];
 
-  _Gravity: P5.Vector = G.createVector(0, 9.81);
+  _Gravity: P5.Vector = G.createVector(0, -9.81);
 
   constructor(engine: Engine)
   {

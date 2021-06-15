@@ -8,7 +8,7 @@ import HotspotCollider from "./HotspotCollider";
 export default class BasicPlatformerController extends Component
 {
   MovementSpeed: number = 8;
-  JumpSpeed: number = -10;
+  JumpSpeed: number = 10;
   Body: Body = null;
   HotspotCollider: HotspotCollider = null;
   HeadIndexA: number = 2;
@@ -57,10 +57,10 @@ export default class BasicPlatformerController extends Component
     
     this.Tx.AddX(movement * this.MovementSpeed * dt);
 
-    if (IM.Pressed(Key.S))
+    if (IM.Pressed(Key.X))
       this.AttemptJump();
     
-    if (IM.Pressed(Key.D))
+    if (IM.Pressed(Key.C))
       this.Flip();
   }
 

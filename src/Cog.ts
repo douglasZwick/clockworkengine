@@ -240,17 +240,9 @@ export class Point extends PrimitiveShape
 
   Render()
   {
-    if (!this.Active) return;  // Invisible if inactive
-
-    G.push();
-
     G.stroke(this.Stroke);       // Points are drawn with stroke color
     G.strokeWeight(this.Diameter * Engine.Meter);
-    let x = (this.X + this._Offset.x) * Engine.Meter;
-    let y = (this.Y + this._Offset.y) * Engine.Meter;
-    G.point(x, y);
-
-    G.pop();
+    G.point(0, 0);
   }
 }
 
@@ -272,10 +264,6 @@ export class Rect extends PrimitiveShape
 
   Render()
   {
-    if (!this.Active) return;  // Invisible if inactive
-
-    G.push();
-
     if (this.UseFill)
       G.fill(this.Fill);
     else
@@ -292,13 +280,9 @@ export class Rect extends PrimitiveShape
     }
 
     G.rectMode(G.CENTER);
-    let x = (this.X + this._Offset.x) * Engine.Meter;
-    let y = (this.Y + this._Offset.y) * Engine.Meter;
     let w = (this.W) * Engine.Meter;
     let h = (this.H) * Engine.Meter;
-    G.rect(x, y, w, h);
-
-    G.pop();
+    G.rect(0, 0, w, h);
   }
 }
 
