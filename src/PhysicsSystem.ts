@@ -211,9 +211,9 @@ export default class PhysicsSystem
       return false;
     if (aR < bL)
       return false;
-    if (aT > bB)
+    if (aB > bT)
       return false;
-    if (aB < bT)
+    if (aT < bB)
       return false;
     
     return true;

@@ -400,6 +400,6 @@ export class AabbCollider extends Collider
   // Getters for this Collider's extents in the world
   get Left() { return this.Tx.X + this._Offset.x - this.W / 2; }
   get Right() { return this.Tx.X + this._Offset.x + this.W / 2; }
-  get Top() { return this.Tx.Y + this._Offset.y - this.H / 2; }
-  get Bottom() { return this.Tx.Y + this._Offset.y + this.H / 2; }
+  get Bottom() { return this.Tx.Y + this._Offset.y - this.H / 2; }
+  get Top() { return this.Tx.Y + this._Offset.y + this.H / 2; }
 }

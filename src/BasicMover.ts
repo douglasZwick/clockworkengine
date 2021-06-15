@@ -35,9 +35,9 @@ export default class BasicMover extends Component
     if (IM.Down(Key.Left))
       movement.x -= 1;
     if (IM.Down(Key.Up))
-      movement.y -= 1;
-    if (IM.Down(Key.Down))
       movement.y += 1;
+    if (IM.Down(Key.Down))
+      movement.y -= 1;
 
     if (IM.Pressed(Key.Space))
       this.ToggleVisibility();
