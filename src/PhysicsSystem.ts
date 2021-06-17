@@ -283,6 +283,12 @@ export default class PhysicsSystem
     else if (center.y < a.Bottom)
       projectionPoint.y = a.Bottom;
 
+    // self.Engine.Space.DebugLine(center,
+    //   P5.Vector.sub(projectionPoint, center).normalize().mult(b.Radius).add(center),
+    //   G.color(0, 0, 0), 6);
+    // self.Engine.Space.DebugLine(projectionPoint, center,
+    //   G.color(0, 220, 255), 2);
+        
     return self.PointVsCircleCollider(projectionPoint, b);
   }
 

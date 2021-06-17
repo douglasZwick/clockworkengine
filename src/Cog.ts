@@ -58,20 +58,6 @@ export default class Cog extends CountedObject
 
   // Finds and returns the first attached Component
   //   of the given type, if any
-  // TODO:
-  //   Rewrite this function to use generics, I think they're called?
-  // TODO:
-  //   Rewrite this function to work with polymorphism!
-  //   I should be able to use instanceof, but I can't right nows
-  // Get(componentType: string): Component
-  // {
-  //   for (const component of this.Components)
-  //     if (component.ComponentType === componentType)
-  //       return component;
-
-  //   return null;
-  // }
-
   Get<T extends Component>(type: TypeOf<T>): T
   {
     return this.Components.find(component => component instanceof type) as T;

@@ -40,13 +40,13 @@ export class TestScene extends Scene
     //     ];
     //     this.PlaceBlocks(blocks);
     
-    // this.CreateTileMap();
-    // this.Hero(5, 6);
+    this.CreateTileMap();
+    this.Hero(5, 6);
 
-    this.TopDownHero(5, 6, 0);
-    this.Coin(8, 4, 1.5, 1);
-    this.Coin(12, 9, 2, 1);
-    this.Coin(16, 3, 2.5, 1);
+    // this.TopDownHero(5, 6, 0);
+    // this.Coin(8, 4, 1.5, 1);
+    // this.Coin(12, 9, 2, 1);
+    // this.Coin(16, 3, 2.5, 1);
 
     // let a = space.Create("A");
     // let txA = new Tx();

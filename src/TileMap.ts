@@ -6,6 +6,12 @@ import Engine from "./Engine";
 
 // TODO:
 //   support for slopes
+//   Concept:
+//     Tile can contain arbitrary polygon for solidity
+//     If a hotspot is inside a tile's AABB, then it tests
+//       whether it's inside the polygon
+//     If it is, it snaps in whichever direction that
+//       hotspot is supposed to snap
 
 
 // Contains all relevant data to identify and use
@@ -28,8 +34,6 @@ export class Tile
 
 
 // A 2D Map of Tile, describing a scene's tiled information
-// TODO:
-//   decide if this actually should be a Graphical
 export class TileMap extends Graphical
 {
   // The 2D container of the map itself
@@ -194,6 +198,16 @@ export class TileMap extends Graphical
       }
     }
   }
+
+  // TODO:
+  //   Add DebugDraw
+  //   Concept:
+  //     Add a flag for whether the tilemap's shape is known
+  //       Whenever the tilemap gets changed, this gets set/cleared/whatever
+  //     Inside DebugDraw, if the shape is unknown, redraw it:
+  //       Update the list of DebugShapes to draw by traversing the map
+  //         and finding its edges
+  //       Set the flag to show that the shape is now known
 
   CleanUp()
   {
