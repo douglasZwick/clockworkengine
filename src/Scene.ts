@@ -44,9 +44,9 @@ export class TestScene extends Scene
     // this.Hero(5, 6);
 
     this.TopDownHero(5, 6, 0);
-    this.Coin(8, 4, 1.5, 0);
-    this.Coin(12, 9, 2, 0);
-    this.Coin(16, 3, 2.5, 0);
+    this.Coin(8, 4, 1.5, 1);
+    this.Coin(12, 9, 2, 1);
+    this.Coin(16, 3, 2.5, 1);
 
     // let a = space.Create("A");
     // let txA = new Tx();
@@ -84,21 +84,26 @@ export class TestScene extends Scene
     tx.X = x;
     tx.Y = y;
     hero.Add(tx);
-    let circle = new Circle();
-    circle.Radius = 1;
-    circle.Fill = G.color(20, 100, 200);
-    circle.Layer = 2;
-    hero.Add(circle);
 
     if (colliderType === 0)
     {
+      let rect = new Rect();
+      rect.W = rect.H = 2;
+      rect.Fill = G.color(20, 100, 200);
+      rect.Layer = 0;
+      hero.Add(rect);
       let aabbCollider = new AabbCollider();
-      aabbCollider.W = aabbCollider.H = circle.Diameter;
+      aabbCollider.W = aabbCollider.H = rect.W;
       aabbCollider.Dynamic = true;
       hero.Add(aabbCollider);
     }
     else
     {
+      let circle = new Circle();
+      circle.Radius = 1;
+      circle.Fill = G.color(20, 100, 200);
+      circle.Layer = 0;
+      hero.Add(circle);
       let circleCollider = new CircleCollider();
       circleCollider.Radius = circle.Radius;
       circleCollider.Dynamic = true;
@@ -174,13 +179,13 @@ export class TestScene extends Scene
     if (colliderType === 0)
     {
       let aabbCollider = new AabbCollider();
-      aabbCollider.W = aabbCollider.H = circle.Diameter;
+      aabbCollider.W = aabbCollider.H = radius * 2;
       coin.Add(aabbCollider);
     }
     else
     {
       let circleCollider = new CircleCollider();
-      circleCollider.Radius = circle.Radius;
+      circleCollider.Radius = radius;
       coin.Add(circleCollider);
     }
 

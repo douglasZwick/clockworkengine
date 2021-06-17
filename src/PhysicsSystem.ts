@@ -266,7 +266,24 @@ export default class PhysicsSystem
 
   AabbVsCircle(a: AabbCollider, b: CircleCollider, self: PhysicsSystem): boolean
   {
-    return false;
+    let center = b.Tx.Position;
+
+    if (self.PointVsAabbCollider(center, a))
+      return true;
+
+    let projectionPoint = center.copy();
+    
+    if (center.x > a.Right)
+      projectionPoint.x = a.Right;
+    else if (center.x < a.Left)
+      projectionPoint.x = a.Left;
+    
+    if (center.y > a.Top)
+      projectionPoint.y = a.Top;
+    else if (center.y < a.Bottom)
+      projectionPoint.y = a.Bottom;
+
+    return self.PointVsCircleCollider(projectionPoint, b);
   }
 
   CircleVsAabb(a: CircleCollider, b: AabbCollider, self: PhysicsSystem): boolean
@@ -276,7 +293,27 @@ export default class PhysicsSystem
 
   CircleVsCircle(a: CircleCollider, b: CircleCollider, self: PhysicsSystem): boolean
   {
-    return false;
+    return G.dist(a.Tx.X, a.Tx.Y, b.Tx.X, b.Tx.Y) <= a.Radius + b.Radius;
+  }
+
+  PointVsAabbCollider(point: P5.Vector, collider: AabbCollider): boolean
+  {
+    if (point.x > collider.Right) return false;
+    if (point.x < collider.Left) return false;
+    if (point.y > collider.Top) return false;
+    if (point.y < collider.Bottom) return false;
+
+    return true;
+  }
+
+  PointVsCircleCollider(point: P5.Vector, collider: CircleCollider): boolean
+  {
+    let dX = collider.Tx.X - point.x;
+    let dY = collider.Tx.Y - point.y;
+    let distSq = dX * dX + dY * dY;
+    let radiusSq = collider.Radius * collider.Radius;
+
+    return distSq <= radiusSq;
   }
   
   // Adds a new contact to the two Colliders
