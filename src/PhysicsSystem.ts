@@ -1,8 +1,10 @@
 import P5 from "p5"
-import { Cog, Collider, AabbCollider } from "./Cog";
+import Cog from "./Cog";
+import Collider from "./Collider"
+import AabbCollider from "./AabbCollider";
+import CircleCollider from "./CircleCollider";
 import Engine from "./Engine";
 import HotspotCollider from "./HotspotCollider";
-import { TileMap } from "./TileMap";
 import TileMapCollider from "./TileMapCollider";
 import Body from "./Body"
 import { G } from "./main";
@@ -28,10 +30,26 @@ export default class PhysicsSystem
   HotspotColliderList: HotspotCollider[] = [];
 
   _Gravity: P5.Vector = G.createVector(0, -9.81);
+  
+  // TODO:
+  //   Ask Josh (any Josh) how to use a class as a key (not just its name)
+  //   so that I can make my map of test functions as a
+  //     Map<class, Map<class, function>>
+  // TestFunctions: Map<any, Map<any, Function>>;
 
   constructor(engine: Engine)
   {
     this.Engine = engine;
+
+    // let aabbMap = new Map<any, Function>();
+    // aabbMap.set(AabbCollider, this.AabbVsAabb);
+    // aabbMap.set(CircleCollider, this.AabbVsCircle);
+    // let circleMap = new Map<any, Function>();
+    // circleMap.set(AabbCollider, this.CircleVsAabb);
+    // circleMap.set(CircleCollider, this.CircleVsCircle);
+    // this.TestFunctions = new Map<any, Map<any, Function>>();
+    // this.TestFunctions.set(AabbCollider, aabbMap);
+    // this.TestFunctions.set(CircleCollider, circleMap);
   }
 
   // Access _Gravity by copy
@@ -161,43 +179,70 @@ export default class PhysicsSystem
   //   then calls the appropriate collision function
   Test(a: Collider, b: Collider)
   {
-    // Currently we only have Aabb colliders
-    
-    // If they're both Aabbs, then...
+    let testFunction = this.GetTestFunction(a, b);
+
+    // If the check comes back true, then...
+    if (testFunction(a, b, this))
+    {
+      // If these two are already touching,
+      //   call PersistCollision
+      // Otherwise call StartCollision
+      if (a.ContactExistsWith(b))
+        this.PersistCollision(a, b);
+      else
+        this.StartCollision(a, b);
+    }
+    else // Otherwise, if the check is false, then...
+    {
+      // First prune a from b
+      b.PruneContactWith(a);
+      
+      // Then prune b from a, and,
+      //   if they were previously in contact, call EndCollision
+      if (a.PruneContactWith(b))
+        this.EndCollision(a, b);
+    }
+  }
+
+  GetTestFunction(a: Collider, b: Collider): Function
+  {
     if (a instanceof AabbCollider)
     {
       if (b instanceof AabbCollider)
-      {
-        // If the AabbVsAabb check comes back true, then...
-        if (this.AabbVsAabb(a, b))
-        {
-          // If these two are already touching,
-          //   call PersistCollision
-          // Otherwise call StartCollision
-          if (a.ContactExistsWith(b))
-            this.PersistCollision(a, b);
-          else
-            this.StartCollision(a, b);
-        }
-        else // Otherwise, if the AabbVsAabb check is false, then...
-        {
-          // First prune a from b
-          b.PruneContactWith(a);
-          
-          // Then prune b from a, and,
-          //   if they were previously in contact, call EndCollision
-          if (a.PruneContactWith(b))
-            this.EndCollision(a, b);
-        }
-      }
+        return this.AabbVsAabb;
+      else if (b instanceof CircleCollider)
+        return this.AabbVsCircle;
     }
+    else if (a instanceof CircleCollider)
+    {
+      if (b instanceof AabbCollider)
+        return this.CircleVsAabb;
+      else if (b instanceof CircleCollider)
+        return this.CircleVsCircle;
+    }
+
+    console.error("No test function found for the given colliders: ", a, b);
+    return null;
+
+    // let aMap = this.TestFunctions.get(typeof a);
+    // if (aMap == undefined)
+    // {
+    //   console.error("1: No test function found for the given colliders: ", a, b);
+    //   return null;
+    // }
+    // let testFunction = aMap.get(typeof b);
+    // if (testFunction == undefined)
+    // {
+    //   console.error("2: No test function found for the given colliders: ", a, b);
+    //   return null;
+    // }
+
+    // return testFunction;
   }
   
   // Returns true if the two AabbColliders are touching, false otherwise
-  AabbVsAabb(a: AabbCollider, b: AabbCollider, aVel: P5.Vector = null, bVel: P5.Vector = null): boolean
+  AabbVsAabb(a: AabbCollider, b: AabbCollider, self: PhysicsSystem): boolean
   {
-    // let contact = new Contact();
-    
     let aL = a.Left;
     let aR = a.Right;
     let aT = a.Top;
@@ -217,6 +262,21 @@ export default class PhysicsSystem
       return false;
     
     return true;
+  }
+
+  AabbVsCircle(a: AabbCollider, b: CircleCollider, self: PhysicsSystem): boolean
+  {
+    return false;
+  }
+
+  CircleVsAabb(a: CircleCollider, b: AabbCollider, self: PhysicsSystem): boolean
+  {
+    return self.AabbVsCircle(b, a, self);
+  }
+
+  CircleVsCircle(a: CircleCollider, b: CircleCollider, self: PhysicsSystem): boolean
+  {
+    return false;
   }
   
   // Adds a new contact to the two Colliders

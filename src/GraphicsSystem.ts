@@ -3,6 +3,7 @@ import Graphical from "./Graphical";
 import { DebugShape } from "./DebugDraw";
 import Engine from "./Engine";
 import { G } from "./main"
+import BasicPostProcessor from "./BasicPostProcessor";
 
 
 // Manages the drawing and ordering of all the Graphicals
@@ -12,6 +13,7 @@ export class GraphicsSystem
 
   // The map of all the Graphical components present
   Graphicals: Map<number, Graphical[]> = new Map<number, Graphical[]>();
+  BasicPostProcessor: BasicPostProcessor = new BasicPostProcessor();
 
   DebugShapes: DebugShape[] = [];
 
@@ -57,7 +59,7 @@ export class GraphicsSystem
   }
   
   // Asks each Graphical to render itself
-  Render()
+  Render(dt: number)
   {
     G.push();
     // So that positive Y is up and positive rotations are counter-clockwise
@@ -94,6 +96,8 @@ export class GraphicsSystem
     this.DebugShapes = [];
 
     G.pop();
+
+    this.BasicPostProcessor.Update(dt);
   }
 }
 

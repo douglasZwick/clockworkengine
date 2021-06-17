@@ -136,3 +136,46 @@ export class DebugPoint extends DebugShape
     G.pop();
   }
 }
+
+
+export class DebugCircle extends DebugShape
+{
+  Position: P5.Vector;
+  Radius: number;
+
+  constructor(position: P5.Vector, r: number, fill: P5.Color, stroke: P5.Color,
+    useStroke: boolean, useFill: boolean, strokeWeight: number)
+  {
+    super(fill, stroke, useStroke, useFill, strokeWeight);
+
+    this.Position = position;
+    this.Radius = r;
+  }
+
+  Render()
+  {
+    G.push();
+
+    if (this.UseFill)
+      G.fill(this.Fill);
+    else
+      G.noFill();
+    
+    if (this.UseStroke)
+    {
+      G.stroke(this.Stroke);
+      G.strokeWeight(this.StrokeWeight);
+    }
+    else
+    {
+      G.noStroke();
+    }
+
+    let x = this.Position.x * Engine.Meter;
+    let y = this.Position.y * Engine.Meter;
+    let d = this.Radius * 2 * Engine.Meter;
+    G.circle(x, y, d);
+
+    G.pop();
+  }
+}

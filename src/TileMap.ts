@@ -4,6 +4,10 @@ import Graphical from "./Graphical"
 import Engine from "./Engine";
 
 
+// TODO:
+//   support for slopes
+
+
 // Contains all relevant data to identify and use
 //   the tiles found in a TileMap
 export class Tile

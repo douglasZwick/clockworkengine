@@ -1,4 +1,3 @@
-import { Rect } from "./Cog";
 import Component from "./Component";
 import { IM } from "./Engine";
 import { Key } from "./InputMaster";
@@ -10,18 +9,12 @@ export default class BasicMover extends Component
 {
   // How fast to go in meters per second
   Speed: number = 8;
-  Rect: Rect;
 
   constructor()
   {
     super();
 
     this.Name = this.constructor.name;
-  }
-
-  Initialize()
-  {
-    this.Rect = this.Owner.Get("Rect") as Rect;
   }
 
   LogicUpdate(dt: number)
@@ -39,16 +32,8 @@ export default class BasicMover extends Component
     if (IM.Down(Key.Down))
       movement.y -= 1;
 
-    if (IM.Pressed(Key.Space))
-      this.ToggleVisibility();
-
     movement.normalize().mult(this.Speed * dt);
 
     this.Tx.Add(movement);
-  }
-
-  ToggleVisibility()
-  {
-    this.Rect.Active = !this.Rect.Active;
   }
 }

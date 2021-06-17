@@ -1,6 +1,6 @@
 import P5 from "p5"
-import { Cog } from "./Cog";
-import { DebugRect, DebugLine, DebugPoint } from "./DebugDraw";
+import Cog from "./Cog";
+import { DebugRect, DebugLine, DebugPoint, DebugCircle } from "./DebugDraw";
 import Engine, { IM } from "./Engine";
 import { Key } from "./InputMaster";
 import { G } from "./main";
@@ -52,6 +52,7 @@ export default class Space
   {
     // Clears everything first and then adds the new objects
     this.Clear();
+    this.CleanUp();
     this.LoadAdditively(scene);
 
     this.CurrentScene = scene;
@@ -180,5 +181,18 @@ export default class Space
 
     let point = new DebugPoint(position, color, radius);
     this.GraphicsSystem.AddDebugShape(point);
+  }
+
+  DebugCircle(position: P5.Vector, r: number,
+    fill: P5.Color = G.color(255, 100), stroke: P5.Color = G.color(255),
+    useStroke: boolean = true, useFill: boolean = true,
+    strokeWeight: number = 1)
+  {
+    if (!this.UseDebugDraw)
+      return;
+    
+    let circle = new DebugCircle(position, r, fill, stroke,
+      useStroke, useFill, strokeWeight);
+    this.GraphicsSystem.AddDebugShape(circle);
   }
 }

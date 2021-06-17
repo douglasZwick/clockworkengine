@@ -1,6 +1,6 @@
 import { G } from "./main"
 import Tx from "./Tx"
-import { AabbCollider, Rect } from "./Cog";
+import AabbCollider from "./AabbCollider";
 import { Tile, TileMap } from "./TileMap";
 import HotspotCollider from "./HotspotCollider"
 import Space from "./Space"
@@ -8,6 +8,11 @@ import TileMapCollider from "./TileMapCollider";
 import BasicMover from "./BasicMover";
 import Body from "./Body"
 import BasicPlatformerController from "./BasicPlatformerController";
+import ChangeColorOnCollision from "./ChangeColorOnCollision";
+import { Rect } from "./Rect";
+import Circle from "./Circle";
+import CircleCollider from "./CircleCollider";
+import Cog from "./Cog";
 
 
 export class Scene
@@ -34,9 +39,14 @@ export class TestScene extends Scene
     //       [5, 9], [6, 9], [7, 9], [8, 8], [9, 8], [10, 8],
     //     ];
     //     this.PlaceBlocks(blocks);
+    
+    // this.CreateTileMap();
+    // this.Hero(5, 6);
 
-    this.Hero(5, 6);
-    this.CreateTileMap();
+    this.TopDownHero(5, 6, 0);
+    this.Coin(8, 4, 1.5, 0);
+    this.Coin(12, 9, 2, 0);
+    this.Coin(16, 3, 2.5, 0);
 
     // let a = space.Create("A");
     // let txA = new Tx();
@@ -67,7 +77,42 @@ export class TestScene extends Scene
     space.PhysicsSystem.Gravity = G.createVector(0, -30);
   }
 
-  Hero(x: number, y: number)
+  TopDownHero(x: number, y: number, colliderType: 0 | 1): Cog
+  {
+    let hero = this.Space.Create("Hero");
+    let tx = new Tx();
+    tx.X = x;
+    tx.Y = y;
+    hero.Add(tx);
+    let circle = new Circle();
+    circle.Radius = 1;
+    circle.Fill = G.color(20, 100, 200);
+    circle.Layer = 2;
+    hero.Add(circle);
+
+    if (colliderType === 0)
+    {
+      let aabbCollider = new AabbCollider();
+      aabbCollider.W = aabbCollider.H = circle.Diameter;
+      aabbCollider.Dynamic = true;
+      hero.Add(aabbCollider);
+    }
+    else
+    {
+      let circleCollider = new CircleCollider();
+      circleCollider.Radius = circle.Radius;
+      circleCollider.Dynamic = true;
+      hero.Add(circleCollider);
+    }
+
+    let mover = new BasicMover();
+    mover.Speed = 4;
+    hero.Add(mover);
+    hero.Initialize();
+    return hero;
+  }
+
+  Hero(x: number, y: number): Cog
   {
     let hero = this.Space.Create("Hero");
 
@@ -94,6 +139,8 @@ export class TestScene extends Scene
     // basicMover.Speed = 8;
     basicPlatformerController.JumpSpeed = 13.5;
     aabbCollider.Dynamic = true;
+    aabbCollider.W = rect.W;
+    aabbCollider.H = rect.H;
     body.Velocity = G.createVector(0, 0);
     let hotspotCollider = new HotspotCollider();
     hotspotCollider.W = rect.W;
@@ -107,6 +154,40 @@ export class TestScene extends Scene
     hero.Add(hotspotCollider);
 
     hero.Initialize();
+
+    return hero;
+  }
+
+  Coin(x: number, y: number, radius: number, colliderType: 0 | 1): Cog
+  {
+    let coin = this.Space.Create("Coin");
+    let tx = new Tx();
+    tx.X = x;
+    tx.Y = y;
+    coin.Add(tx);
+    let circle = new Circle();
+    circle.Radius = radius;
+    circle.Fill = G.color(250, 220, 20);
+    circle.Layer = 1;
+    coin.Add(circle);
+
+    if (colliderType === 0)
+    {
+      let aabbCollider = new AabbCollider();
+      aabbCollider.W = aabbCollider.H = circle.Diameter;
+      coin.Add(aabbCollider);
+    }
+    else
+    {
+      let circleCollider = new CircleCollider();
+      circleCollider.Radius = circle.Radius;
+      coin.Add(circleCollider);
+    }
+
+    let colorChanger = new ChangeColorOnCollision();
+    coin.Add(colorChanger);
+    coin.Initialize();
+    return coin;
   }
 
   LayeredHero(x: number, y: number)

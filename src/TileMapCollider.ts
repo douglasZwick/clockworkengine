@@ -17,7 +17,7 @@ export default class TileMapCollider extends Component
   {
     super.Initialize();
 
-    this.TileMap = this.Owner.Get("TileMap") as TileMap;
+    this.TileMap = this.Owner.Get(TileMap);
     this.Space.PhysicsSystem.AddTileMapCollider(this);
   }
 

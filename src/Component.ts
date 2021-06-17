@@ -1,4 +1,4 @@
-import { Cog } from "./Cog";
+import Cog from "./Cog";
 import CountedObject from "./CountedObject";
 import { Collision } from "./PhysicsSystem";
 

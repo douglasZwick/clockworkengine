@@ -82,7 +82,7 @@ export default class Engine
     // Prune destroyed objects
     this.Space.CleanUp();
     // Draw all the graphicals
-    this.GraphicsSystem.Render();
+    this.GraphicsSystem.Render(dt);
     
     if (this.Space.UseDebugDraw)
       this.Space.DebugDraw();

@@ -25,7 +25,7 @@ const sketch = (p5: P5) =>
     let testScene = new TestScene();
     engine.Space.Load(testScene);
     
-    clearColor = G.color(40);
+    clearColor = G.color(10);
     
     p5.frameRate(60);
   }

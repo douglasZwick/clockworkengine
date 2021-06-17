@@ -40,8 +40,8 @@ export default class BasicPlatformerController extends Component
 
   Initialize()
   {
-    this.Body = this.Owner.Get(Body.name) as Body;
-    this.HotspotCollider = this.Owner.Get(HotspotCollider.name) as HotspotCollider;
+    this.Body = this.Owner.Get(Body);
+    this.HotspotCollider = this.Owner.Get(HotspotCollider);
   }
 
   LogicUpdate(dt: number)
