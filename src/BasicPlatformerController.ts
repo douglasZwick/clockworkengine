@@ -57,7 +57,7 @@ export default class BasicPlatformerController extends Component
     
     this.Tx.AddX(movement * this.MovementSpeed * dt);
 
-    if (IM.Pressed(Key.X))
+    if (IM.Pressed(Key.Z))
       this.AttemptJump();
     
     if (IM.Pressed(Key.C))

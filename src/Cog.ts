@@ -19,6 +19,8 @@ export default class Cog extends CountedObject
   Components: Component[] = [];
   // If true, this Cog will be pruned at the end of the frame
   Marked: boolean = false;
+  // If true, this Cog will not be destroyed on scene changes
+  Persistent: boolean = false;
   // False until this Cog's Initialize function is called.
   //   I currently do not remember why I wanted this....
   Initialized: boolean = false;

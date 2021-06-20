@@ -41,10 +41,16 @@ export default class Space
   }
   
   // Destroys all the Cogs in the space
+  // Since this is probably used exclusively for scene changes,
+  //   it also calls CleanUp right afterward, and furthermore
+  //   it checks to see whether each cog is Persistent before
+  //   destroying it
   Clear()
   {
     for (const cog of this.List)
-      cog.Destroy();
+      if (!cog.Persistent)
+        cog.Destroy();
+    this.CleanUp();
   }
   
   // Loads a scene destructively (that is, not additively)
@@ -52,7 +58,6 @@ export default class Space
   {
     // Clears everything first and then adds the new objects
     this.Clear();
-    this.CleanUp();
     this.LoadAdditively(scene);
 
     this.CurrentScene = scene;

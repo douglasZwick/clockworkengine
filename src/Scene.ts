@@ -13,6 +13,8 @@ import { Rect } from "./Rect";
 import Circle from "./Circle";
 import CircleCollider from "./CircleCollider";
 import Cog from "./Cog";
+import { Key, InputFrame } from "./InputMaster"
+import MoviePlaybackTester from "./MoviePlaybackTester";
 
 
 export class Scene
@@ -44,9 +46,9 @@ export class TestScene extends Scene
     this.Hero(5, 6);
 
     // this.TopDownHero(5, 6, 0);
-    // this.Coin(8, 4, 1.5, 1);
-    // this.Coin(12, 9, 2, 1);
-    // this.Coin(16, 3, 2.5, 1);
+    this.Coin(12, 4, 0.5, 1);
+    this.Coin(13.5, 4, 0.5, 1);
+    this.Coin(15, 4, 0.5, 1);
 
     // let a = space.Create("A");
     // let txA = new Tx();
@@ -73,6 +75,11 @@ export class TestScene extends Scene
     // b.Add(txB);
     // b.Add(rectB);
     // b.Initialize();
+
+    let testCog = space.Create("MovieTester");
+    let tester = new MoviePlaybackTester();
+    testCog.Add(tester);
+    testCog.Initialize();
 
     space.PhysicsSystem.Gravity = G.createVector(0, -30);
   }
@@ -342,8 +349,8 @@ export class TestScene extends Scene
       [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1],
+      [1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     ];
     let legend: Tile[] = [emptyBlock, solidBlock];

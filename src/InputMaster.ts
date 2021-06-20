@@ -42,6 +42,34 @@ export default class InputMaster
     return !this.Curr[key] && this.Prev[key];
   }
 
+  OnKeyPressed(keyCode: number): boolean
+  {
+    // TODO:
+    //   Decide how to handle whether this should be skipped
+    //     during Replay
+    if (this.Mode !== ImMode.Replay)
+      this.Curr[keyCode] = true;
+    
+    // Returns false to prevent the browser's default behavior
+    return false;
+
+    // TODO:
+    //   Write a keystroke-checking system that would enable me
+    //     to register meaningful keystrokes, and as long as some
+    //     config flag is set, this function would check to see
+    //     if the key being pressed is a part of any registered
+    //     keystroke. Only if it is would this function return false
+  }
+
+  OnKeyReleased(keyCode: number): boolean
+  {
+    if (this.Mode !== ImMode.Replay)
+      this.Curr[keyCode] = false;
+    
+    // Returns false to prevent the browser's default behavior
+    return false;
+  }
+
   CopyFromHistory()
   {
     this.Curr.fill(false);
@@ -49,42 +77,130 @@ export default class InputMaster
       this.Curr[key] = true;
 
     ++this.HistoryIndex;
+
+    if (this.HistoryIndex >= this.History.length)
+      this.StopMovie();
   }
 
   Update()
   {
     switch (this.Mode)
     {
-      default:
-        this.Prev = [...this.Curr];
-        break;
-      case ImMode.Record:
-        let inputFrame = new InputFrame()
+    default:
+      this.Prev = [...this.Curr];
+      break;
+      
+    case ImMode.Record:
+      let inputFrame = new InputFrame()
 
-        for (let i = 0; i < this.Curr.length; ++i)
-        {
-          let curr = this.Curr[i];
-          this.Prev[i] = curr;
-          if (curr)
-            inputFrame.Add(i);
-        }
+      for (let i = 0; i < this.Curr.length; ++i)
+      {
+        let curr = this.Curr[i];
+        this.Prev[i] = curr;
+        if (curr)
+          inputFrame.Add(i);
+      }
 
-        this.History.push(inputFrame);
-        break;
-      case ImMode.Replay:
-        break;
+      this.History.push(inputFrame);
+      break;
+
+    case ImMode.Replay:
+      this.Prev = [...this.Curr];
+      // this.CopyFromHistory();
+      break;
     }
+  }
+
+  PlayMovie(movie: InputFrame[])
+  {
+    this.History = [...movie];
+    for (let i = 0; i < this.Curr.length; ++i)
+      this.Curr[i] = this.Prev[i] = false;
+    this.HistoryIndex = 0;
+    this.Mode = ImMode.Replay;
+  }
+
+  StopMovie()
+  {
+    if (this.Mode !== ImMode.Replay)
+    {
+      console.warn("StopMovie called when IM.Mode is not set to Replay");
+
+      return;
+    }
+
+    console.log("Movie replay stopped");
+    
+    this.Mode = ImMode.Default;
+    let index = (this.HistoryIndex <= this.History.length ?
+      this.HistoryIndex : this.History.length) - 1;
+    let finalFrame = this.History[index];
+
+    for (const key of finalFrame.Keys)
+      this.Curr[key] = false;
+  }
+
+  BeginRecording()
+  {
+    if (this.Mode === ImMode.Record)
+    {
+      console.warn("BeginRecording called when IM.Mode is already set to Record");
+
+      return;
+    }
+
+    this.Mode = ImMode.Record;
+  }
+
+  EndRecording(): InputFrame[]
+  {
+    if (this.Mode !== ImMode.Record)
+    {
+      console.warn("EndRecording called when IM.Mode is not set to Record");
+
+      return;
+    }
+
+    this.Mode = ImMode.Default;
+    // Push one empty frame at the end of the input movie so
+    //   that keys don't get "stuck" when it's done playing
+    this.History.push(new InputFrame());
+
+    return [...this.History];
+  }
+
+  SaveHistory()
+  {
+
   }
 }
 
 
-class InputFrame
+export class InputFrame
 {
   Keys: number[] = [];
 
   Add(key: number)
   {
     this.Keys.push(key);
+  }
+
+  Copy(): InputFrame
+  {
+    let frame = new InputFrame();
+    frame.Keys = [...this.Keys];
+    return frame;
+  }
+
+  Copies(copies: number): InputFrame[]
+  {
+    let output: InputFrame[] = [];
+    output.length = copies;
+
+    for (let i = 0; i < copies; ++i)
+      output[i] = this.Copy();
+
+    return output;
   }
 }
 
