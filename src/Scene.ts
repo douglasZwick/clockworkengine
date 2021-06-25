@@ -15,6 +15,8 @@ import CircleCollider from "./CircleCollider";
 import Cog from "./Cog";
 import { Key, InputFrame } from "./InputMaster"
 import MoviePlaybackTester from "./MoviePlaybackTester";
+import Sprite from "./Sprite";
+import Resources from "./Resources";
 
 
 export class Scene
@@ -80,6 +82,16 @@ export class TestScene extends Scene
     let tester = new MoviePlaybackTester();
     testCog.Add(tester);
     testCog.Initialize();
+
+    let spriteCog = space.Create("Sprite");
+    let tx = new Tx();
+    tx.X = 17;
+    tx.Y = 5;
+    let sprite = new Sprite();
+    sprite.ImageSource = Resources.Images.get("TestSprite");
+    spriteCog.Add(tx);
+    spriteCog.Add(sprite);
+    spriteCog.Initialize();
 
     space.PhysicsSystem.Gravity = G.createVector(0, -30);
   }

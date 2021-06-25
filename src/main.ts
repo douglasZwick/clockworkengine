@@ -15,7 +15,13 @@ const sketch = (p5: P5) =>
 {
   G = p5;
 
-  const engine = new Engine();
+  var engine: Engine;
+
+  p5.preload = function()
+  {
+    console.log("Now preloading");
+    engine = new Engine();
+  }
 
   p5.setup = function()
   {

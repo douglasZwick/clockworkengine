@@ -12,6 +12,7 @@ import InputMaster, { ImMode, Key } from "./InputMaster"
 import { G } from "./main"
 import PhysicsSystem from "./PhysicsSystem"
 import { GraphicsSystem } from "./GraphicsSystem"
+import ImageLoader from "./ImageLoader"
 
 
 export var IM: InputMaster;
@@ -32,6 +33,7 @@ export default class Engine
   // Defines the number of world units per logical "meter"
   static Meter: number = 32;
 
+  ImageLoader: ImageLoader = new ImageLoader();
   Space: Space;
   PhysicsSystem: PhysicsSystem;
   GraphicsSystem: GraphicsSystem;
@@ -49,6 +51,8 @@ export default class Engine
     this.GraphicsSystem = new GraphicsSystem(this);
     this.InputMaster = new InputMaster(this);
     IM = this.InputMaster;
+
+    this.ImageLoader.LoadImages();
   }
   
   static get FrameCount() { return Engine.Instance._FrameCount; }
