@@ -21,6 +21,15 @@ const sketch = (p5: P5) =>
   {
     console.log("Now preloading");
     engine = new Engine();
+    engine.LoadResources().then(() =>
+    {
+      p5.draw = function ()
+      {
+        p5.background(clearColor);
+
+        engine.Update(dt());
+      }
+    });
   }
 
   p5.setup = function()
@@ -34,13 +43,6 @@ const sketch = (p5: P5) =>
     clearColor = G.color(10);
     
     p5.frameRate(60);
-  }
-  
-  p5.draw = function()
-  {
-    p5.background(clearColor);
-
-    engine.Update(dt());
   }
 
   p5.keyPressed = function ()

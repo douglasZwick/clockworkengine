@@ -15,4 +15,7 @@
     // We're using npm, all modules are node
     "moduleResolution": "node",
   },
+  "include": [
+    "src"
+  ]
 }
