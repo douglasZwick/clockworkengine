@@ -2,6 +2,7 @@ import P5 from "p5"
 import { G } from "./main"
 import Graphical from "./Graphical"
 import Engine from "./Engine";
+import ImageSource from "./ImageSource";
 
 
 // TODO:
@@ -22,13 +23,16 @@ export class Tile
   Y: number;
   Solid: boolean;
   Color: P5.Color;
+  ImageSource: ImageSource;
 
-  constructor(x: number, y: number, solid = false, tileColor = G.color(255))
+  constructor(x: number, y: number, solid = false,
+    tileColor = G.color(255), imageSource: ImageSource = undefined)
   {
     this.X = x;
     this.Y = y;
     this.Solid = solid;
     this.Color = tileColor;
+    this.ImageSource = imageSource;
   }
 }
 
@@ -53,7 +57,7 @@ export class TileMap extends Graphical
     if (tile == undefined)
       return;
 
-    let copy = new Tile(x, y, tile.Solid, tile.Color);
+    let copy = new Tile(x, y, tile.Solid, tile.Color, tile.ImageSource);
 
     // Get the column at the indicated X value
     let column = this.Map.get(x);
@@ -184,14 +188,24 @@ export class TileMap extends Graphical
         if (tile != undefined)
         {
           G.push();
-
-          G.fill(tile.Color);
-          G.noStroke();
-          G.rectMode(G.CENTER);
           let x = columnIndex * Engine.Meter;
           let y = rowIndex * Engine.Meter;
           G.translate(x, y, 0);
-          G.rect(0, 0, Engine.Meter, Engine.Meter);
+
+          if (tile.ImageSource == undefined)
+          {
+            G.fill(tile.Color);
+            G.noStroke();
+            G.rectMode(G.CENTER);
+            G.rect(0, 0, Engine.Meter, Engine.Meter);
+          }
+          else
+          {
+            G.tint(tile.Color);
+            G.imageMode(G.CENTER);
+            G.scale(1, -1, 1);
+            G.image(tile.ImageSource.Image, 0, 0);
+          }
 
           G.pop();
         }

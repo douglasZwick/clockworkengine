@@ -37,9 +37,10 @@ export default class Engine
   PhysicsSystem: PhysicsSystem;
   GraphicsSystem: GraphicsSystem;
   InputMaster: InputMaster;
-  DtMode: DtMode = DtMode.Fixed;
+  DtMode: DtMode = DtMode.Actual;
   FixedTimeStep: number = 1/60;
   _FrameCount: number = 0;
+  _ElapsedTime: number = 0;
 
   constructor()
   {
@@ -54,18 +55,23 @@ export default class Engine
   
   static get FrameCount() { return Engine.Instance._FrameCount; }
   static get FrameCountStr() { return ("        " + this.FrameCount).slice(-8); }
+  static get ElapsedTime() { return Engine.Instance._ElapsedTime; }
   // Gets the next unique ID number
   static NextId(): number { return Engine.IdCounter++; }
+  static Dt(): number
+  {
+    return Engine.Instance.DtMode === DtMode.Fixed ?
+      Engine.Instance.FixedTimeStep : G.deltaTime / 1000;
+  }
 
   async LoadResources()
   {
     await Resources.Load();
   }
   
-  Update(dt: number)
+  Update()
   {
-    if (this.DtMode === DtMode.Fixed)
-      dt = this.FixedTimeStep;
+    let dt = Engine.Dt();
 
     if (IM.Mode === ImMode.Replay)
       IM.CopyFromHistory();
@@ -97,6 +103,7 @@ export default class Engine
     IM.Update();
 
     ++this._FrameCount;
+    this._ElapsedTime += dt;
   }
 
   Break()

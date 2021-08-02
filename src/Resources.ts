@@ -68,7 +68,7 @@ export default class Resources
       const response = await fetch(filePath);
       const fileText = await response.text();
       let bitmapFont = JSON.parse(fileText) as BitmapFont;
-      bitmapFont.ImageSource = Resources.Images.get(bitmapFontName);
+      bitmapFont.ImageSource = Resources.Images.get(bitmapFont.Name);
       Resources.BitmapFonts.set(bitmapFontName, bitmapFont);
 
       ++bitmapFontCount;

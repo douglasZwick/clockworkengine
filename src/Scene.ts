@@ -17,6 +17,7 @@ import { Key, InputFrame } from "./InputMaster"
 import MoviePlaybackTester from "./MoviePlaybackTester";
 import Sprite from "./Sprite";
 import Resources from "./Resources";
+import BitmapText from "./BitmapText";
 
 
 export class Scene
@@ -44,13 +45,17 @@ export class TestScene extends Scene
     //     ];
     //     this.PlaceBlocks(blocks);
     
-    this.CreateTileMap();
-    this.Hero(5, 6);
+    // this.CreateTileMap();
+    // this.Hero(5, 6);
 
-    // this.TopDownHero(5, 6, 0);
-    this.Coin(12, 4, 0.5, 1);
-    this.Coin(13.5, 4, 0.5, 1);
-    this.Coin(15, 4, 0.5, 1);
+    this.TopDownHero(5, 6, 0);
+    this.Text(7, 7);
+    // this.ShadowedText(7, 6);
+    // this.WavingText(7, 5);
+    // this.ShadowedWavingText(7, 4);
+    // this.Coin(12, 4, 0.5, 1);
+    // this.Coin(13.5, 4, 0.5, 1);
+    // this.Coin(15, 4, 0.5, 1);
 
     // let a = space.Create("A");
     // let txA = new Tx();
@@ -78,22 +83,107 @@ export class TestScene extends Scene
     // b.Add(rectB);
     // b.Initialize();
 
-    let testCog = space.Create("MovieTester");
-    let tester = new MoviePlaybackTester();
-    testCog.Add(tester);
-    testCog.Initialize();
+    // let testCog = space.Create("MovieTester");
+    // let tester = new MoviePlaybackTester();
+    // testCog.Add(tester);
+    // testCog.Initialize();
 
-    let spriteCog = space.Create("Sprite");
-    let tx = new Tx();
-    tx.X = 17;
-    tx.Y = 5;
-    let sprite = new Sprite();
-    sprite.ImageSource = Resources.Images.get("TestSprite");
-    spriteCog.Add(tx);
-    spriteCog.Add(sprite);
-    spriteCog.Initialize();
+    // let spriteCog = space.Create("Sprite");
+    // let spriteTx = new Tx();
+    // spriteTx.X = 17;
+    // spriteTx.Y = 5;
+    // let sprite = new Sprite();
+    // sprite.ImageSource = Resources.Images.get("TestSprite");
+    // spriteCog.Add(spriteTx);
+    // spriteCog.Add(sprite);
+    // spriteCog.Initialize();
 
-    space.PhysicsSystem.Gravity = G.createVector(0, -30);
+    // space.PhysicsSystem.Gravity = G.createVector(0, -30);
+  }
+
+  Text(x: number, y: number): Cog
+  {
+    let bitmapTextCog = this.Space.Create("OrdinaryTextCog");
+    let textTx = new Tx();
+    textTx.X = x;
+    textTx.Y = y;
+    let bitmapText = new BitmapText();
+    bitmapText.BitmapFont = Resources.BitmapFonts.get("NarrowMellow");
+    bitmapText.Text =
+      "Lorem Ipsum is simply dummy text of the printing and typesetting\n" +
+      "industry. Lorem Ipsum has been the industry's standard dummy text\n" +
+      "ever since the 1500s, when an unknown printer took a galley of\n" +
+      "type and scrambled it to make a type specimen book. It has sur-\n" +
+      "vived not only five centuries, but also the leap into electronic\n" +
+      "typesetting, remaining essentially unchanged. It was popularised\n" +
+      "in the 1960s with the release of Letraset sheets containing Lorem\n" +
+      "Ipsum passages, and more recently with desktop publishing soft-\n" +
+      "ware like Aldus PageMaker including versions of Lorem Ipsum.";
+    bitmapText.Layer = 2;
+    bitmapText.Color = G.color('white');
+    bitmapTextCog.Add(textTx);
+    bitmapTextCog.Add(bitmapText);
+    bitmapTextCog.Initialize();
+
+    return bitmapTextCog;
+  }
+
+  ShadowedText(x: number, y: number): Cog
+  {
+    let bitmapTextCog = this.Space.Create("ShadowedTextCog");
+    let textTx = new Tx();
+    textTx.X = x;
+    textTx.Y = y;
+    let bitmapText = new BitmapText();
+    bitmapText.BitmapFont = Resources.BitmapFonts.get("NarrowMellow");
+    bitmapText.Text = "Shadowed text is a bit more dramatic.";
+    bitmapText.Layer = 2;
+    bitmapText.Shadowed = true;
+    bitmapText.Color = G.color('white');
+    bitmapTextCog.Add(textTx);
+    bitmapTextCog.Add(bitmapText);
+    bitmapTextCog.Initialize();
+
+    return bitmapTextCog;
+  }
+
+  WavingText(x: number, y: number): Cog
+  {
+    let bitmapTextCog = this.Space.Create("WavingTextCog");
+    let textTx = new Tx();
+    textTx.X = x;
+    textTx.Y = y;
+    let bitmapText = new BitmapText();
+    bitmapText.BitmapFont = Resources.BitmapFonts.get("NarrowMellow");
+    bitmapText.Text = "Waving text looks extra cool.";
+    bitmapText.Layer = 2;
+    bitmapText.Waving = true;
+    bitmapText.Color = G.color('white');
+    bitmapTextCog.Add(textTx);
+    bitmapTextCog.Add(bitmapText);
+    bitmapTextCog.Initialize();
+
+    return bitmapTextCog;
+  }
+
+  ShadowedWavingText(x: number, y: number): Cog
+  {
+    let bitmapTextCog = this.Space.Create("ShadowedWavingTextCog");
+    let textTx = new Tx();
+    textTx.X = x;
+    textTx.Y = y;
+    let bitmapText = new BitmapText();
+    bitmapText.BitmapFont = Resources.BitmapFonts.get("NarrowMellow");
+    bitmapText.Text = "Shadowed waving text looks awesome!";
+    bitmapText.Layer = 2;
+    bitmapText.Shadowed = true;
+    bitmapText.Waving = true;
+    bitmapText.Color = G.color('white');
+    bitmapTextCog.Add(textTx);
+    bitmapTextCog.Add(bitmapText);
+    bitmapTextCog.Initialize();
+
+    return bitmapTextCog;
   }
 
   TopDownHero(x: number, y: number, colliderType: 0 | 1): Cog
@@ -130,7 +220,7 @@ export class TestScene extends Scene
     }
 
     let mover = new BasicMover();
-    mover.Speed = 4;
+    mover.Speed = 8;
     hero.Add(mover);
     hero.Initialize();
     return hero;
@@ -338,8 +428,8 @@ export class TestScene extends Scene
     let tileMap = new TileMap();
     tileMapCog.Add(tileMap);
 
-    let emptyBlock = new Tile(0, 0, false, G.color(115, 110, 100, 32));
-    let solidBlock = new Tile(0, 0, true, G.color(100, 110, 115));
+    let emptyBlock = new Tile(0, 0, false, G.color(255, 100), undefined);
+    let solidBlock = new Tile(0, 0, true, G.color(255, 200), undefined);
 
     let indexArray =
     [
